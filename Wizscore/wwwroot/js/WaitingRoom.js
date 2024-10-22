@@ -1,25 +1,23 @@
-﻿"use strict";
+﻿addEventListener("DOMContentLoaded", (event) => {
+    let copyBtn = document.getElementById('copyGameKeyToKeyboard');
+    if (copyBtn) {
 
-var connection = new signalR.HubConnectionBuilder().withUrl("/waitingRoomHub").build();
-
-connection.on("PlayerAddedAsync", function (username) {
-
-    console.log(username);
-    let list = document.getElementById("waitingRoomList");
-    if (list) {
-        for (var i = 0, row; row = list.rows[i]; i++) {
-            let isNotPlayerRow = row.dataset.isPlayerRow === "false"
-            if (isNotPlayerRow) {
-                row.cells[1].innerHTML = username;
-                row.dataset.isPlayerRow = "false";
-                return;
-            }
+        if (!navigator.clipboard) {
+            return;
         }
+
+        copyBtn.addEventListener('click', () => {
+            let gameKey = copyBtn.dataset.gameKey;
+            if (gameKey) {
+                navigator.clipboard.writeText(gameKey).then(function () {
+                    copyBtn.className = "btn btn-success";
+                    copyBtn.innerHTML = "copied";
+                    btn.setAttribute("diabled", "");
+                }, function (err) {
+                    console.error('Async: Could not copy text: ', err);
+                });
+            }
+        });
     }
 });
 
-connection.start().then(function () {
-    
-}).catch(function (err) {
-    return console.error(err.toString());
-});

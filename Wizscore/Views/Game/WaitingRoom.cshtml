@@ -5,8 +5,11 @@
     </div>
 </div>
 <div class="row">
-    <div class="sm-col-12">
+    <div class="col-sm-6">
         Game Key: @Model.GameKey
+    </div>
+     <div class="col-sm-6">
+        <span class="m2-2 btn btn-info" id="copyGameKeyToKeyboard" data-game-key="@Model.GameKey">Copy to keyboard</span>
     </div>
     <div class="sm-col-12 mt-3">
         <table class="table" id="waitingRoomList">
@@ -39,5 +42,6 @@
 
 @section Scripts
 {
+    <script src="~/js/WaitingRoomHub.js" type="text/javascript"></script>
     <script src="~/js/WaitingRoom.js" type="text/javascript"></script>
 }

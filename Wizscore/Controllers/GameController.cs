@@ -96,6 +96,14 @@ namespace Wizscore.Controllers
         [HttpPost]
         public async Task<IActionResult> JoinSubmit([FromForm] JoinSubmitViewModel request)
         {
+            //if we are already in a game we can't join a new one
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (!string.IsNullOrEmpty(gameKey) && !string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(WaitingRoom));
+            }
+
             var result = await _gameManager.AddPlayerToGameAsync(request.GameKey, request.Username);
             if (result.IsSuccess)
             {
