@@ -1,14 +1,19 @@
 ﻿@model Wizscore.ViewModels.BidViewModel
 <div class="row">
     <div class="sm-col-12">
-        <h1>Create a new game!</h1>
+        <h1>Make a bid for round: @Model.RoundNumber</h1>
     </div>
 </div>
 <div class="row">
     <div class="sm-col-12">
         <form asp-action="BidSubmit" asp-controller="Game" method="post">
 
-            <div class="suit-container">
+            @if(Model.IsDealer)
+            {
+                <h4 class="mb-2">You are the dealer, please select the suit for this round</h4>
+            }
+
+            <div class="suit-container mb-2">
                 <button type="button" class="btn btn-outline-info suit" data-suit="Spade" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-spade"></i></button>
                 <button type="button" class="btn btn-outline-info suit" data-suit="Heart" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-heart"></i></button>
                 <button type="button" class="btn btn-outline-info suit" data-suit="Club" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-club"></i></button>
@@ -18,7 +23,6 @@
             @if(Model.IsDealer)
             {
                 <input type="hidden" id="isDealer" value="true" />
-                <input type="hidden" id="suit" asp-for="Suit" />
             }
 
             <label asp-for=Bid class="form-label">Bid: </label>

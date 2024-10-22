@@ -8,6 +8,6 @@ namespace Wizscore.ViewModels
 
         public int Bid { get; set; }
 
-        public SuitEnum Suit { get; set; }
+        public int RoundNumber { get; set; }
     }
 }
