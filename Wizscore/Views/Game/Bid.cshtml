@@ -1,0 +1,37 @@
+﻿@model Wizscore.ViewModels.BidViewModel
+<div class="row">
+    <div class="sm-col-12">
+        <h1>Create a new game!</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="sm-col-12">
+        <form asp-action="BidSubmit" asp-controller="Game" method="post">
+
+            <div class="suit-container">
+                <button type="button" class="btn btn-outline-info suit" data-suit="Spade" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-spade"></i></button>
+                <button type="button" class="btn btn-outline-info suit" data-suit="Heart" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-heart"></i></button>
+                <button type="button" class="btn btn-outline-info suit" data-suit="Club" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-club"></i></button>
+                <button type="button" class="btn btn-outline-info suit" data-suit="Diamond" data-active="false" @(!Model.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-diamond"></i></button>
+            </div>
+
+            @if(Model.IsDealer)
+            {
+                <input type="hidden" id="isDealer" value="true" />
+                <input type="hidden" id="suit" asp-for="Suit" />
+            }
+
+            <label asp-for=Bid class="form-label">Bid: </label>
+            <input asp-for="Bid" class="form-control" />
+            
+
+            <button type="submit" class="btn btn-outline-success mt-5 align-self-end">Submit</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/BidHub.js" type="text/javascript"></script>
+    <script src="~/js/Bid.js" type="text/javascript"></script>
+}

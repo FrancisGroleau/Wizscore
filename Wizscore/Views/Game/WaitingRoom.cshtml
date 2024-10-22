@@ -9,7 +9,7 @@
         Game Key: @Model.GameKey
     </div>
      <div class="col-sm-6">
-        <span class="m2-2 btn btn-info" id="copyGameKeyToKeyboard" data-game-key="@Model.GameKey">Copy to keyboard</span>
+        <span class="m2-2 btn btn-outline-info" id="copyGameKeyToKeyboard" data-game-key="@Model.GameKey">Copy to keyboard</span>
     </div>
     <div class="sm-col-12 mt-3">
         <table class="table" id="waitingRoomList">
@@ -36,8 +36,9 @@
     </div>
     @if(Model.IsGameCreator)
     {
-        <a asp-controller="Game" asp-action="Start" asp-route-gamekey="@Model.GameKey">Start Game</a>
+        <a asp-controller="Game" asp-action="Start" asp-route-gamekey="@Model.GameKey" class="btn btn-outline-success">Start Game</a>
     }
+    <a id="goToBid" style="display: none" asp-controller="Game" asp-action="Bid"></a>
 </div>
 
 @section Scripts

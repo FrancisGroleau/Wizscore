@@ -137,7 +137,9 @@ namespace Wizscore.Managers
 
             await _gameRepository.SetGameHasStartAsync(game.Id);
             game.HasStarted = true;
-            
+
+            //Notify everyone that the game has started
+            await _waitingRoomHubContext.Clients.Group(gameKey).GameStartedAsync();
 
             return Result<Game>.Success(game);
         }

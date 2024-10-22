@@ -131,7 +131,34 @@ namespace Wizscore.Controllers
 
         public async Task<IActionResult> Bid()
         {
-            return View();
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var game = await _gameManager.GetGameByKeyAsync(gameKey);
+            var isCreator = await _gameManager.IsPlayerWithUsernameIsCreatorAsync(game, username);
+
+            var vm = new BidViewModel()
+            {
+                IsDealer = isCreator,
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BidSubmit([FromForm] BidViewModel request)
+        {
+
+            return View(nameof(Score));
         }
 
         public async Task<IActionResult> Score()

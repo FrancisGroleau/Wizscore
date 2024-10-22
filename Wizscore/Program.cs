@@ -47,5 +47,6 @@ app.MapControllerRoute(
 
 app.MapHub<GameHub>("/gameHub");
 app.MapHub<WaitingRoomHub>("/waitingRoomHub");
+app.MapHub<BidHub>("/bidHub");
 
 app.Run();
