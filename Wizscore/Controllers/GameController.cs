@@ -28,8 +28,6 @@ namespace Wizscore.Controllers
             _logger = logger;
         }
 
-
-        public IActionResult Index() => View();
         public IActionResult Create() => View();
 
 
@@ -58,19 +56,27 @@ namespace Wizscore.Controllers
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             if (string.IsNullOrEmpty(gameKey))
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
             var username = Request.Cookies[Constants.Cookies.UserName];
             if (string.IsNullOrEmpty(username))
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
             var game = await _gameManager.GetGameByKeyAsync(gameKey);
             if (game == null)
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            //When a player is being removed from a game we need to remove is current cookie and redirect him to the home screen
+            if(!game.Players.Any(a => a.Username == username))
+            {
+                Response.Cookies.Delete(Constants.Cookies.GameKey);
+                Response.Cookies.Delete(Constants.Cookies.UserName);
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
             var isGameCreator = await _gameManager.IsPlayerWithUsernameIsCreatorAsync(game, username);
@@ -80,6 +86,7 @@ namespace Wizscore.Controllers
                 GameKey = gameKey,
                 NumberOfPlayer = game.NumberOfPlayers,
                 IsGameCreator = isGameCreator,
+                CurrentUserName = username,
                 Players = game.Players.Select(s => new WaitingRoomPlayerViewModel() { Username = s.Username }).ToList()
             };
 
@@ -96,14 +103,6 @@ namespace Wizscore.Controllers
         [HttpPost]
         public async Task<IActionResult> JoinSubmit([FromForm] JoinSubmitViewModel request)
         {
-            //if we are already in a game we can't join a new one
-            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
-            var username = Request.Cookies[Constants.Cookies.UserName];
-            if (!string.IsNullOrEmpty(gameKey) && !string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction(nameof(WaitingRoom));
-            }
-
             var result = await _gameManager.AddPlayerToGameAsync(request.GameKey, request.Username);
             if (result.IsSuccess)
             {
@@ -116,12 +115,31 @@ namespace Wizscore.Controllers
             return View(nameof(Join));
         }
 
+        public async Task<IActionResult> RemovePlayer(string username)
+        {
+            //if we are already in a game we can't join a new one
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            var currentUsername = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var result = await _gameManager.RemovePlayerAsync(gameKey, username, currentUsername);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError("Error", result.Error.Message);
+            }
+
+            return RedirectToAction(nameof(WaitingRoom));
+        }
+
         public async Task<IActionResult> Start(string gameKey)
         {
             var username = Request.Cookies[Constants.Cookies.UserName];
             if (string.IsNullOrEmpty(username))
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
             await _gameManager.StartGameAsync(gameKey, username);
@@ -134,13 +152,13 @@ namespace Wizscore.Controllers
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             if (string.IsNullOrEmpty(gameKey))
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
             var username = Request.Cookies[Constants.Cookies.UserName];
             if (string.IsNullOrEmpty(username))
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
             var game = await _gameManager.GetGameByKeyAsync(gameKey);
@@ -169,13 +187,13 @@ namespace Wizscore.Controllers
                 var gameKey = Request.Cookies[Constants.Cookies.GameKey];
                 if (string.IsNullOrEmpty(gameKey))
                 {
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
                 }
 
                 var game = await _gameManager.GetGameByKeyAsync(gameKey);
                 if (game == null)
                 {
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
                 }
             }
             catch (Exception ex)

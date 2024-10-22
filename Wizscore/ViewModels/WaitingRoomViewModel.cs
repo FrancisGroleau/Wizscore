@@ -7,6 +7,7 @@ namespace Wizscore.ViewModels
         public string GameKey { get; set; } = string.Empty;
         public int NumberOfPlayer { get; set; }
         public bool IsGameCreator { get; set; }
+        public string CurrentUserName { get; set; }
         public List<WaitingRoomPlayerViewModel> Players { get; set; } = new List<WaitingRoomPlayerViewModel>();
     }
 

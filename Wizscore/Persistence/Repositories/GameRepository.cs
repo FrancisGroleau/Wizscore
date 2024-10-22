@@ -11,6 +11,7 @@ namespace Wizscore.Persistence.Repositories
         Task SetGamePlayerCreatorIdAsync(int gameId, int playerCreatorId);
         Task SetGameHasStartAsync(int gameId);
         Task SetGameNumbersOfPlayerAsync(int gameId, int numberOfPlayers);
+        Task<Game> RemovePlayerAsync(int gameId, int playerId);
     }
 
     public class GameRepository : IGameRepository
@@ -56,6 +57,25 @@ namespace Wizscore.Persistence.Repositories
                 return null;
             }
 
+            return new Game()
+            {
+                Id = entity.Id,
+                Key = entity.Key,
+                NumberOfPlayers = entity.NumberOfPlayers,
+                PlayerCreatorId = entity.PlayerCreatorId,
+                HasStarted = entity.HasStarted,
+                Players = entity.Players.Select(s => new Player()
+                {
+                    Id = s.Id,
+                    Username = s.Username
+                }).ToList()
+            };
+        }
+
+        public async Task<Game> RemovePlayerAsync(int gameId, int id)
+        {
+            await _context.Players.Where(w => w.GameId == gameId && w.Id == id).ExecuteDeleteAsync();
+            var entity = await _context.Games.FirstAsync(f => f.Id == gameId);
             return new Game()
             {
                 Id = entity.Id,

@@ -8,18 +8,24 @@
     <div class="col-sm-6">
         Game Key: @Model.GameKey
     </div>
-     <div class="col-sm-6">
+    <div class="col-sm-6">
         <span class="m2-2 btn btn-outline-info" id="copyGameKeyToKeyboard" data-game-key="@Model.GameKey">Copy to keyboard</span>
     </div>
     <div class="sm-col-12 mt-3">
         <table class="table" id="waitingRoomList">
             <thead>
+            <th scope="col">
+                #
+            </th>
+            <th scope="col">
+                Player
+            </th>
+                @if (Model.IsGameCreator)
+                {
                 <th scope="col">
-                    #
+                    &nbsp;
                 </th>
-                <th scope="col">
-                    Player
-                </th>
+                }
             </thead>
             <tbody>
                 @for (int i = 0; i < Model.NumberOfPlayer; i++)
@@ -29,12 +35,20 @@
                     <tr data-is-player-row="@(isPlayerRow ? Boolean.TrueString.ToLower() : Boolean.FalseString.ToLower())">
                         <td>@(i + 1)</td>
                         <td>@value</td>
+                        @if (Model.IsGameCreator && isPlayerRow && Model.Players[i].Username != Model.CurrentUserName)
+                        {
+                            <td>
+                                <a class="btn btn-outline-danger" asp-controller="Game" asp-action="RemovePlayer" asp-route-username="@Model.Players[i].Username">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
         </table>
     </div>
-    @if(Model.IsGameCreator)
+    @if (Model.IsGameCreator)
     {
         <a asp-controller="Game" asp-action="Start" asp-route-gamekey="@Model.GameKey" class="btn btn-outline-success">Start Game</a>
     }

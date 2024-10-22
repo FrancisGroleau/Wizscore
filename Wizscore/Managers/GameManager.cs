@@ -16,6 +16,7 @@ namespace Wizscore.Managers
         Task<Game> CreateGameAsync(int numberOfPlayers, string username);
         Task<Game?> GetGameByKeyAsync(string gameKey);
         Task<bool> IsPlayerWithUsernameIsCreatorAsync(Game game, string username);
+        Task<Result<Game>> RemovePlayerAsync(string gameKey, string username, string currentUsername);
         Task<Result<Game>> StartGameAsync(string gameKey, string username);
     }
 
@@ -99,7 +100,7 @@ namespace Wizscore.Managers
             var player = await _playerRepository.CreatePlayerAsync(game.Id, username);
 
             //Notify user in waiting room a new player has been added
-            await _waitingRoomHubContext.Clients.Group(gameKey).PlayerAddedAsync(username);
+            await _waitingRoomHubContext.Clients.Group(gameKey).PlayerAddedAsync();
 
             return Result<Player>.Success(player);
         }
@@ -120,7 +121,7 @@ namespace Wizscore.Managers
             var game = await _gameRepository.GetGameByKeyAsync(gameKey);
             if(game == null)
             {
-                return Result<Game>.Failure(Error.FromError($"Not Game found with Game Key: {gameKey}", "Game.NotExisting"));
+                return Result<Game>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
             }
 
             var isCreator = await IsPlayerWithUsernameIsCreatorAsync(game, username);
@@ -142,6 +143,37 @@ namespace Wizscore.Managers
             await _waitingRoomHubContext.Clients.Group(gameKey).GameStartedAsync();
 
             return Result<Game>.Success(game);
+        }
+
+        public async Task<Result<Game>> RemovePlayerAsync(string gameKey, string username, string currentUsername)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if(game == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            var player = await _playerRepository.GetPlayerByGameIdAndUsernameAsync(game.Id, username);
+            if(player == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"No Player found for Game Key: {gameKey} and username: {username}", "Game.Players.NotExisting"));
+            }
+
+            var currentPlayer = await _playerRepository.GetPlayerByGameIdAndUsernameAsync(game.Id, currentUsername);
+            if (currentPlayer == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"No Player found for Game Key: {gameKey} and username: {currentUsername}", "Game.Players.NotExisting"));
+            }
+
+            if(game.PlayerCreatorId != currentPlayer.Id)
+            {
+                return Result<Game>.Failure(Error.FromError("Only player who created the game can remove other players", "Game.Players.NotCreator"));
+            }
+
+            var updatedGame = await _gameRepository.RemovePlayerAsync(game.Id, player.Id);
+            await _waitingRoomHubContext.Clients.Group(gameKey).PlayerRemovedAsync();
+
+            return Result<Game>.Success(updatedGame);
         }
     }
 }

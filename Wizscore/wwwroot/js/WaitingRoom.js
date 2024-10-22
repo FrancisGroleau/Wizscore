@@ -12,7 +12,13 @@
                 navigator.clipboard.writeText(gameKey).then(function () {
                     copyBtn.className = "btn btn-success";
                     copyBtn.innerHTML = "copied";
-                    btn.setAttribute("diabled", "");
+                    copyBtn.setAttribute("diabled", "");
+
+                    setTimeout(() => {
+                        copyBtn.className = "btn btn-outline-info";
+                        copyBtn.innerHTML = "Copy to keyboard";
+                        copyBtn.removeAttribute("diabled");
+                    }, 1000);
                 }, function (err) {
                     console.error('Async: Could not copy text: ', err);
                 });

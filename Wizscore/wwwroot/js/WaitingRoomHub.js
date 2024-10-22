@@ -2,19 +2,25 @@
 
 var connection = new signalR.HubConnectionBuilder().withUrl("/waitingRoomHub").build();
 
-connection.on("PlayerAddedAsync", function (username) {
+connection.on("PlayerAddedAsync", function () {
 
-    let list = document.getElementById("waitingRoomList");
-    if (list) {
-        for (var i = 0, row; row = list.rows[i]; i++) {
-            let isNotPlayerRow = row.dataset.isPlayerRow === "false"
-            if (isNotPlayerRow) {
-                row.cells[1].innerHTML = username;
-                row.dataset.isPlayerRow = "false";
-                return;
-            }
-        }
-    }
+    //let list = document.getElementById("waitingRoomList");
+    //if (list) {
+    //    for (var i = 0, row; row = list.rows[i]; i++) {
+    //        let isNotPlayerRow = row.dataset.isPlayerRow === "false"
+    //        if (isNotPlayerRow) {
+    //            row.cells[1].innerHTML = username;
+    //            row.dataset.isPlayerRow = "false";
+    //            return;
+    //        }
+    //    }
+    //}
+
+    window.location.reload();
+});
+
+connection.on("PlayerRemovedAsync", function () {
+    window.location.reload();
 });
 
 connection.on("GameStartedAsync", function () {
