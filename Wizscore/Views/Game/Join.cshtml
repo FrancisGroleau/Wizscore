@@ -1,0 +1,37 @@
+﻿@model Wizscore.ViewModels.JoinSubmitViewModel
+<div class="row">
+    <div class="sm-col-12">
+        <h1>Join a game!</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="sm-col-12">
+        <table class="table">
+            @foreach (var item in ViewContext.ViewData.ModelState)
+            {
+                if (item.Value.Errors.Any())
+                {
+                    <tr class="table-danger">
+                        <td><b>@item.Key</b></td>
+                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
+                        <td>@(string.Join("; ", item.Value.Errors.Select(x => x.ErrorMessage)))</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+    <div class="sm-col-12">
+        <form asp-action="JoinSubmit" asp-controller="Game" method="post">
+
+            <label asp-for=GameKey class="form-label">Game Key: </label>
+            <input asp-for="GameKey" class="form-control" aria-describedby="gamekeyHelp" />
+            <div id="gamekeyHelp" class="form-text">Unique identifier of the game, should be provided by the creator of this game.</div>
+
+            <label asp-for=Username class="form-label">Username: </label>
+            <input asp-for="Username" class="form-control" aria-describedby="usernameHelp" />
+            <div id="usernameHelp" class="form-text">Enter your username for this game</div>
+
+            <button type="submit" class="btn btn-outline-success mt-5 align-self-end">Join</button>
+        </form>
+    </div>
+</div>
