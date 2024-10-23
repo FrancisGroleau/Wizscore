@@ -15,7 +15,7 @@ namespace Wizscore.Managers
     public interface IGameManager
     {
         Task<Result<Player>> AddPlayerToGameAsync(string gameKey, string username);
-        Task<Game> CreateGameAsync(int numberOfPlayers, string username);
+        Task<Result<Game>> CreateGameAsync(int numberOfPlayers, string username);
         Task<Game?> GetGameByKeyAsync(string gameKey);
         Task<bool> IsPlayerWithUsernameIsCreatorAsync(Game game, string username);
         Task<Result<Game>> RemovePlayerAsync(string gameKey, string username, string currentUsername);
@@ -26,9 +26,14 @@ namespace Wizscore.Managers
         Task<Result<Game>> MovePlayerDownAsync(string gameKey, string username, string currentUsername);
         Task<Result<int>> GetCurentRoundNumberAsync(string gameKey);
         Task<Result<Game>> SubmitBidAsync(string gameKey, string username, int bidValue);
+        Task<Result<Game>> SubmitBidResultAsync(string gameKey, string username, int actualValue);
         Task<Result<List<string>>> GetCurrentRoundBidMessagesAsync(string gameKey);
         Task<Result<Game>> ChangeCurrentSuitAsync(string gameKey, string username, SuitEnum suitValue);
         Task<Result<SuitEnum>> GetCurrentSuitAsync(string gameKey);
+        Task<Result<bool>> IsCurrentRoundFinishedAsync(string gameKey);
+        Task<Result<bool>> FinishRoundAsync(string gameKey, string username);
+        Task<Result<Score>> CaclulateScoresAsync(string gameKey);
+        Task<Result<string>> GetNextDealerUsernameAsync(string gameKey);
     }
 
     public class GameManager : IGameManager
@@ -61,9 +66,16 @@ namespace Wizscore.Managers
             _random = new Random();
         }
 
-        public async Task<Game> CreateGameAsync(int numberOfPlayers, string username)
+        public async Task<Result<Game>> CreateGameAsync(int numberOfPlayers, string username)
         {
             var gameKey = await GetNewGameKeyAsync();
+
+            var maxPlayers = _settings.CurrentValue?.MaxPlayers ?? 6;
+            if(numberOfPlayers <= 1 || numberOfPlayers > maxPlayers)
+            {
+                return Result<Game>.Failure(Error.FromError($"Maximum number of players is: {maxPlayers}", "Game.TooManyPlayers"));
+            }
+
             var game = await _gameRepository.CreateGameAsync(numberOfPlayers, gameKey);
 
             var player = await _playerRepository.CreatePlayerAsync(game.Id, username, 1);
@@ -71,7 +83,7 @@ namespace Wizscore.Managers
 
             game.Players.Add(player);
 
-            return game;
+            return Result<Game>.Success(game);
         }
 
         private async Task<string> GetNewGameKeyAsync()
@@ -90,7 +102,6 @@ namespace Wizscore.Managers
         public Task<Game?> GetGameByKeyAsync(string gameKey) 
             =>_gameRepository.GetGameByKeyAsync(gameKey);
         
-
         private string GenerateGameKey()
         {
             int length = _settings.CurrentValue?.GameKeyLength ?? 5;
@@ -318,7 +329,7 @@ namespace Wizscore.Managers
             await _waitingRoomHubContext.Clients.Group(gameKey).RefreshPlayerListAsync();
 
             var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
-            return Result<Game>.Success(updatedGame);
+            return Result<Game>.Success(updatedGame!);
         }
 
         public async Task<Result<Game>> MovePlayerDownAsync(string gameKey, string username, string currentUsername)
@@ -362,7 +373,7 @@ namespace Wizscore.Managers
 
             var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
 
-            return Result<Game>.Success(updatedGame);
+            return Result<Game>.Success(updatedGame!);
         }
 
         public async Task<Result<int>> GetCurentRoundNumberAsync(string gameKey)
@@ -420,13 +431,52 @@ namespace Wizscore.Managers
                 return Result<Game>.Failure(Error.FromError($"Player already bidded for this round", "Game.Players.AlreadyBidded"));
             }
 
+            if(bidValue > latestRound.RoundNumber)
+            {
+                return Result<Game>.Failure(Error.FromError("Cannot bid more than the current round", "Game.Rounds.BidTooMuch"));
+            }
+
             var bid = await _bidRepository.CreateBidAsync(latestRound.Id, player.Id, bidValue);
-
-            await _bidWaitingRoomHubContext.Clients.Group(gameKey).BidSubmittedAsync();
-
             var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
 
+            var isRoundFinished = updatedGame!.Rounds
+                .OrderByDescending(o => o.RoundNumber).First().Bids.Count() == game.NumberOfPlayers;
+
+            await _bidWaitingRoomHubContext.Clients.Group(gameKey).BidSubmittedAsync();
+            
             return Result<Game>.Success(updatedGame);
+        }
+
+        public async Task<Result<Game>> SubmitBidResultAsync(string gameKey, string username, int actualValue)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            var player = game.Players.FirstOrDefault(f => f.Username == username);
+            if (player == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"No Player found for Game Key: {gameKey} and username: {username}", "Game.Players.NotExisting"));
+            }
+
+            if (!game.HasStarted || game.Rounds.Count == 0)
+            {
+                return Result<Game>.Failure(Error.FromError($"Game has not started yet", "Game.NotStarted"));
+            }
+
+            var latestRound = game.Rounds.Last();
+            var playerBid = latestRound.Bids.FirstOrDefault(f => f.PlayerId == player.Id);
+            if (playerBid == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"Player did not bid for this round", "Game.Players.NotBid"));
+            }
+
+            await _bidRepository.UpdateBidActualValueAsync(playerBid.Id, actualValue);
+            var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
+
+            return Result<Game>.Success(updatedGame!);
         }
 
         public async Task<Result<List<string>>> GetCurrentRoundBidMessagesAsync(string gameKey)
@@ -490,7 +540,7 @@ namespace Wizscore.Managers
             await _roundRepository.UpdateCurrentSuitAsync(latestRound.Id, suitValue);
 
             var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
-            return Result<Game>.Success(updatedGame);
+            return Result<Game>.Success(updatedGame!);
         }
 
         public async Task<Result<SuitEnum>> GetCurrentSuitAsync(string gameKey)
@@ -509,6 +559,136 @@ namespace Wizscore.Managers
             var latestRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
 
             return Result<SuitEnum>.Success(latestRound.Suit);
+        }
+
+        public async Task<Result<bool>> IsCurrentRoundFinishedAsync(string gameKey)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return Result<bool>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            if (!game.HasStarted || game.Rounds.Count == 0)
+            {
+                return Result<bool>.Failure(Error.FromError($"Game has not started yet", "Game.NotStarted"));
+            }
+
+            var latestRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
+
+            var isRoundFinished = latestRound.Bids.Count == game.NumberOfPlayers;
+            return Result<bool>.Success(isRoundFinished);
+        }
+
+        public async Task<Result<bool>> FinishRoundAsync(string gameKey, string username)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return Result<bool>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            var player = game.Players.FirstOrDefault(f => f.Username == username);
+            if (player == null)
+            {
+                return Result<bool>.Failure(Error.FromError($"No Player found for Game Key: {gameKey} and username: {username}", "Game.Players.NotExisting"));
+            }
+
+            if (!game.HasStarted || game.Rounds.Count == 0)
+            {
+                return Result<bool>.Failure(Error.FromError($"Game has not started yet", "Game.NotStarted"));
+            }
+
+            var latestRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
+
+            if(latestRound.Bids.Count != game.NumberOfPlayers)
+            {
+                return Result<bool>.Failure(Error.FromError("Current Round is not finished", "Game.Rounds.NotFinished"));
+            }
+
+            await _bidWaitingRoomHubContext.Clients.Group(gameKey).RoundFinishedAsync();
+
+            return Result<bool>.Success(true);
+        }
+
+        public async Task<Result<Score>> CaclulateScoresAsync(string gameKey)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return Result<Score>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            var score = new Score();
+            score.RoundsScores = game.Rounds.SelectMany(s => s.Bids.Select(b => new RoundScore()
+            {
+                Username = game.Players.First(f => f.Id == b.PlayerId).Username,
+                ActualValue = b.ActualValue,
+                BidValue = b.BidValue,
+                RoundNumber = s.RoundNumber,
+                Score = CalculateScore(b.BidValue, b.ActualValue)
+            })).ToList();
+
+            score.PlayerScores = score.RoundsScores.GroupBy(g => g.Username)
+                .Select(s => new PlayerScore()
+                {
+                    Username = s.Key,
+                    Score = s.Sum(ss => ss.Score)
+                }).ToList();
+
+            return Result<Score>.Success(score);
+        }
+
+        private int CalculateScore(int bid, int actual)
+        {
+            var score = 20;
+            if(actual != bid)
+            {
+                var diff = Math.Abs(actual - bid);
+                score = 0;
+                score -= (diff * 10);
+            }
+            else
+            {
+                score += (bid * 10);
+            }
+
+            return score;
+        }
+
+        public async Task<Result<string>> GetNextDealerUsernameAsync(string gameKey)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return Result<string>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            if (!game.HasStarted || game.Rounds.Count == 0)
+            {
+                return Result<string>.Failure(Error.FromError($"Game has not started yet", "Game.NotStarted"));
+            }
+
+            var latestRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
+            var latestPlayer = game.Players.FirstOrDefault(f => f.Id == latestRound.DealerId);
+            if (latestPlayer == null)
+            {
+                return Result<string>.Failure(Error.FromError($"Cannot found who was the latest dealer", "Game.Players.NotFound"));
+            }
+
+            if(latestPlayer.PlayerNumber == game.NumberOfPlayers)
+            {
+                var firstPlayerUsername = game.Players.First().Username;
+                return Result<string>.Success(firstPlayerUsername);
+            }
+
+            var nextPlayer = game.Players.FirstOrDefault(f => f.PlayerNumber == latestPlayer.PlayerNumber + 1);
+            if (nextPlayer == null)
+            {
+                return Result<string>.Failure(Error.FromError($"Cannot found the next dealer", "Game.Players.NotFound"));
+            }
+
+            return Result<string>.Success(nextPlayer.Username);
         }
     }
 }

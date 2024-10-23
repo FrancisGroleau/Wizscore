@@ -5,6 +5,23 @@
     </div>
 </div>
 <div class="row">
+    <div class="col-sm-12">
+        <table class="model-state">
+            @foreach (var item in ViewContext.ViewData.ModelState)
+            {
+                if (item.Value?.Errors?.Any() ?? false)
+                {
+                    <tr>
+                        <td><b>@item.Key</b></td>
+                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
+                        <td>@(string.Join("; ", item.Value?.Errors?.Select(x => x.ErrorMessage) ?? Enumerable.Empty<string>()))</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+</div>
+<div class="row">
     <div class="sm-col-12">
         <form asp-action="BidSubmit" asp-controller="Game" method="post">
 

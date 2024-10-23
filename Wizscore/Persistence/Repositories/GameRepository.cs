@@ -138,6 +138,7 @@ namespace Wizscore.Persistence.Repositories
                     {
                         Id = b.Id,
                         BidValue = b.BidValue,
+                        ActualValue = b.ActualValue,
                         PlayerId = b.PlayerId,
                         RoundId = b.RoundId
                     })?.ToList() ?? new List<Bid>(),

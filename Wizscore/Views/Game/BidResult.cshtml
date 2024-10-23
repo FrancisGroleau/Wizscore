@@ -1,0 +1,34 @@
+﻿@model Wizscore.ViewModels.BidResultSubmitViewModel
+<div class="row">
+    <div class="sm-col-12">
+        <h1>Enter your actual value for round: @ViewBag.RoundNumber</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <table class="model-state">
+            @foreach (var item in ViewContext.ViewData.ModelState)
+            {
+                if (item.Value?.Errors?.Any() ?? false)
+                {
+                    <tr>
+                        <td><b>@item.Key</b></td>
+                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
+                        <td>@(string.Join("; ", item.Value?.Errors?.Select(x => x.ErrorMessage) ?? Enumerable.Empty<string>()))</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="sm-col-12">
+        <form asp-action="BidResultSubmit" asp-controller="Game" method="post">
+
+            <label asp-for="ActualValue" class="form-label">Actual: </label>
+            <input asp-for="ActualValue" class="form-control" />
+            
+            <button type="submit" class="btn btn-outline-success mt-5 align-self-end">Submit</button>
+        </form>
+    </div>
+</div>

@@ -2,14 +2,12 @@
 
 namespace Wizscore.Hubs
 {
-    public interface IBidWaitingRoomHub
+    public interface IScoreHub
     {
-        Task BidSubmittedAsync();
-
-        Task RoundFinishedAsync();
+        Task BidResultSubmittedAsync();
     }
 
-    public class BidWaitingRoomHub : Hub<IBidWaitingRoomHub>
+    public class ScoreHub : Hub<IScoreHub>
     {
         public override async Task OnConnectedAsync()
         {

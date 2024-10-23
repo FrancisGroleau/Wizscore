@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Wizscore.Configuration;
 using Wizscore.Managers;
@@ -33,10 +34,15 @@ namespace Wizscore.Controllers
         {
             try
             {
-                var game = await _gameManager.CreateGameAsync(request.NumberOfPlayers, request.Username);
+                var gameResult = await _gameManager.CreateGameAsync(request.NumberOfPlayers, request.Username);
+                if(!gameResult.IsSuccess)
+                {
+                    ModelState.AddModelError("Error", gameResult.Error.Message);
+                    return View(nameof(Create));
+                }
 
-                ManageCookie(Constants.Cookies.GameKey, game.Key);
-                ManageCookie(Constants.Cookies.UserName, game.Players.First().Username);
+                ManageCookie(Constants.Cookies.GameKey, gameResult.Value.Key);
+                ManageCookie(Constants.Cookies.UserName, gameResult.Value.Players.First().Username);
 
                 return RedirectToAction(nameof(WaitingRoom));
             }
@@ -97,7 +103,7 @@ namespace Wizscore.Controllers
         }
 
 
-        public async Task<IActionResult> Join()
+        public IActionResult Join()
         {
             return View();
         }
@@ -122,7 +128,7 @@ namespace Wizscore.Controllers
             //if we are already in a game we can't join a new one
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             var currentUsername = Request.Cookies[Constants.Cookies.UserName];
-            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(currentUsername))
             {
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
@@ -141,7 +147,7 @@ namespace Wizscore.Controllers
             //if we are already in a game we can't join a new one
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             var currentUsername = Request.Cookies[Constants.Cookies.UserName];
-            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(currentUsername))
             {
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
@@ -160,7 +166,7 @@ namespace Wizscore.Controllers
             //if we are already in a game we can't join a new one
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             var currentUsername = Request.Cookies[Constants.Cookies.UserName];
-            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(currentUsername))
             {
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
@@ -203,11 +209,11 @@ namespace Wizscore.Controllers
 
             var game = await _gameManager.GetGameByKeyAsync(gameKey);
             var dealerUserNameResult = await _gameManager.GetCurrentDealerUsernameAsync(gameKey);
-
- 
-            ViewBag.IsDealer = dealerUserNameResult.IsSuccess
+            var isDealer = dealerUserNameResult.IsSuccess
                     ? dealerUserNameResult.Value == username
                     : false;
+
+            ViewBag.IsDealer = isDealer;
 
             ViewBag.RoundNumber = game?.Rounds
                 ?.OrderByDescending(x => x.RoundNumber)
@@ -220,8 +226,13 @@ namespace Wizscore.Controllers
                 ? currentsuit.Value
                 : Models.SuitEnum.None;
 
-            var nextBiderUsernameResult = await _gameManager.GetNextPlayerUsernameToBidAsync(gameKey);
+            var isCurrentRoundFinishedResult = await _gameManager.IsCurrentRoundFinishedAsync(gameKey);
+            if (isCurrentRoundFinishedResult.IsSuccess && isCurrentRoundFinishedResult.Value && isDealer)
+            {
+                return RedirectToAction(nameof(BidWaitingRoom));
+            }
 
+            var nextBiderUsernameResult = await _gameManager.GetNextPlayerUsernameToBidAsync(gameKey);
             if (nextBiderUsernameResult.IsSuccess && username != nextBiderUsernameResult.Value)
             {
                 return RedirectToAction(nameof(BidWaitingRoom));
@@ -272,6 +283,23 @@ namespace Wizscore.Controllers
             }
             vm.Suit = currentSuitResult.Value;
 
+            var dealerPlayerUsernameResult = await _gameManager.GetCurrentDealerUsernameAsync(gameKey);
+            if (!dealerPlayerUsernameResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", dealerPlayerUsernameResult.Error.Message);
+                return View(vm);
+            }
+            vm.IsDealer = username == dealerPlayerUsernameResult.Value;
+
+            var isCurrentRoundFinishedResult = await _gameManager.IsCurrentRoundFinishedAsync(gameKey);
+            if (!isCurrentRoundFinishedResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", isCurrentRoundFinishedResult.Error.Message);
+                return View(vm);
+            }
+            vm.IsRoundFinished = isCurrentRoundFinishedResult.Value;
+
+
             return View(vm);
         }
 
@@ -300,10 +328,86 @@ namespace Wizscore.Controllers
             return RedirectToAction(nameof(BidWaitingRoom));
         }
 
+        public async Task<IActionResult> FinishRound()
+        {
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var result = await _gameManager.FinishRoundAsync(gameKey, username);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError("Error", result.Error.Message);
+                return RedirectToAction(nameof(BidWaitingRoom));
+            }
+
+            return RedirectToAction(nameof(BidResult));
+        }
+
+
+        public async Task<IActionResult> BidResult()
+        {
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var roundNumberResult = await _gameManager.GetCurentRoundNumberAsync(gameKey);
+            if (!roundNumberResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", roundNumberResult.Error.Message);
+                return View();
+            }
+            ViewBag.RoundNumber = roundNumberResult.Value;
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BidResultSubmit(BidResultSubmitViewModel request)
+        {
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var submitBidResult = await _gameManager.SubmitBidResultAsync(gameKey, username, request.ActualValue);
+            if(!submitBidResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", submitBidResult.Error.Message);
+                return RedirectToAction(nameof(BidResult));
+            }
+
+            return RedirectToAction(nameof(Score));
+        }
         
 
         public async Task<IActionResult> Score()
         {
+            var vm = new ScoreViewModel();
+
             try
             {
                 //Make sure we only can see score of our current game
@@ -318,13 +422,38 @@ namespace Wizscore.Controllers
                 {
                     return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
                 }
+
+                var scoreResult = await _gameManager.CaclulateScoresAsync(gameKey);
+                if(!scoreResult.IsSuccess)
+                {
+                    ModelState.AddModelError("Error", scoreResult.Error.Message);
+                }
+
+                vm = new ScoreViewModel()
+                {
+                    IsNextDealer = false,
+                    PlayerScores = scoreResult.Value.PlayerScores.Select(s => new ScorePlayerViewModel
+                    {
+                        Username = s.Username,
+                        Score = s.Score
+                    }).ToList(),
+                    RoundsScores = scoreResult.Value.RoundsScores.Select(s => new ScoreRoundViewModel
+                    {
+                        Username = s.Username,
+                        BidValue = s.BidValue,
+                        ActualValue = s.ActualValue,
+                        RoundNumber = s.RoundNumber,
+                        Score = s.Score
+                    }).ToList(),
+                };
+             
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("Error", ex.Message);
             }
 
-            return View();
+            return View(vm);
         }
 
 

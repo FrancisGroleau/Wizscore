@@ -9,5 +9,8 @@ namespace Wizscore.ViewModels
         public SuitEnum Suit { get; set; }
 
         public List<string> BidMessages { get; set; } = new List<string>();
+
+        public bool IsDealer { get; set; }
+        public bool IsRoundFinished { get; set; }
     }
 }

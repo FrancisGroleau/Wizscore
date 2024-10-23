@@ -1,21 +1,75 @@
-﻿@model Wizscore.ViewModels.GameSubmitCreateViewModel
+﻿@model Wizscore.ViewModels.ScoreViewModel
+
 <div class="row">
-    <div class="sm-col-12">
-        <h1>Create a new game!</h1>
+    <div class="col-sm-12">
+        <h1>Score Total</h1>
+    </div>
+</div>
+<div class="row mb-2">
+    <div class="col-sm-12">
+
+        <table class="table table-bordered border-primary">
+            <thead>
+            <th scope="col">
+                Player
+            </th>
+            <th scope="col">
+                Score
+            </th>
+            </thead>
+            <tbody>
+                @foreach (var playerScore in Model.PlayerScores)
+                {
+                    <tr>
+                        <td>@playerScore.Username</td>
+                        <td>@playerScore.Score</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 <div class="row">
-    <div class="sm-col-12">
-        <form asp-action="SubmitCreate" asp-controller="Game" method="post">
-            <label asp-for=NumberOfPlayers class="form-label">Number of player: </label>
-            <input asp-for="NumberOfPlayers" class="form-control" aria-describedby="numberOfPlayersHelp" />
-            <div id="numberOfPlayersHelp" class="form-text">The number of players will dictate how many rounds you'll play</div>
-
-            <label asp-for="Username" class="form-label">Username</label>
-            <input asp-for="Username" class="form-control" aria-describedby="usernameHelp" />
-            <div id="usernameHelp" class="form-text">Enter your username for this game</div>
-
-            <button type="submit" class="btn btn-outline-success mt-5 align-self-end">Create</button>
-        </form>
+    <div class="col-sm-12">
+        <h1>Score Détaillé</h1>
     </div>
 </div>
+<div class="row">
+    <div class="col-sm-12">
+        @{
+            var roundGrouping = Model.RoundsScores.GroupBy(g => g.RoundNumber);
+        }
+        @foreach (var roundGroup in roundGrouping)
+        {
+            <p class="h5">Round: @roundGroup.Key</p>
+            <table class="table table-bordered border-primary">
+                <thead>
+                <th scope="col">
+                    Player
+                </th>
+                <th scope="col">
+                    Bid / Actual
+                </th>
+                <th scope="col">
+                    Score
+                </th>
+                </thead>
+                <tbody>
+                    @foreach (var scoreRound in roundGroup)
+                    {
+                        <tr>
+                            <td>@scoreRound.Username</td>
+                            <td>@scoreRound.BidValue / @scoreRound.ActualValue</td>
+                            <td>@scoreRound.Score</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/ScoreHub.js" type="text/javascript"></script>
+}

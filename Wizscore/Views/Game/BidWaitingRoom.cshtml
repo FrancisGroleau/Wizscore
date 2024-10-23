@@ -9,12 +9,12 @@
         <table class="model-state">
             @foreach (var item in ViewContext.ViewData.ModelState)
             {
-                if (item.Value.Errors.Any())
+                if (item.Value?.Errors?.Any() ?? false)
                 {
                     <tr>
                         <td><b>@item.Key</b></td>
                         <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
-                        <td>@(string.Join("; ", item.Value.Errors.Select(x => x.ErrorMessage)))</td>
+                        <td>@(string.Join("; ", item.Value?.Errors?.Select(x => x.ErrorMessage) ?? Enumerable.Empty<string>()))</td>
                     </tr>
                 }
             }
@@ -56,7 +56,24 @@
         </table>
     </div>
 </div>
+@if(!Model.IsDealer && Model.IsRoundFinished)
+{
+    <div class="row">
+        <div class="col-sm-12">
+            <h4>Waiting for the dealer to finish the round.</h4>
+        </div>
+    </div>
+}
+@if (Model.IsDealer && Model.IsRoundFinished)
+{
+    <div class="row">
+        <div class="col-sm-12 justify-content-center align-items-center">
+            <a class="btn btn-outline-success" asp-controller="Game" asp-action="FinishRound">Finish Round</a>
+        </div>
+    </div>
+}
 <a id="goToBid" style="display: none" asp-controller="Game" asp-action="Bid"></a>
+<a id="goToBidResult" style="display: none" asp-controller="Game" asp-action="BidResult"></a>
 
 @section Scripts
 {

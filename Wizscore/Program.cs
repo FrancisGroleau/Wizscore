@@ -47,9 +47,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapHub<GameHub>("/gameHub");
 app.MapHub<WaitingRoomHub>("/waitingRoomHub");
 app.MapHub<BidHub>("/bidHub");
 app.MapHub<BidWaitingRoomHub>("/bidWaitingRoomHub");
+app.MapHub<ScoreHub>("/scoreHub");
 
 app.Run();

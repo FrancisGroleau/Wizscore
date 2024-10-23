@@ -26,6 +26,16 @@ connection.on("BidSubmittedAsync", function () {
     }
 });
 
+connection.on("RoundFinishedAsync", function () {
+    let gotToBidResultAnchor = document.getElementById("goToBidResult");
+    if (gotToBidResultAnchor) {
+        let url = gotToBidResultAnchor.href;
+        if (url) {
+            window.location.replace(url);
+        }
+    }
+});
+
 bidHubConnection.on("SuitChangedAsync", function (suit) {
 
     let previouslySelectedSuitButton = document.querySelector('.suit[data-active="true"]');
