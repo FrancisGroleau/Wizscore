@@ -417,6 +417,12 @@ namespace Wizscore.Controllers
                     return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
                 }
 
+                var username = Request.Cookies[Constants.Cookies.UserName];
+                if (string.IsNullOrEmpty(username))
+                {
+                    return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+                }
+
                 var game = await _gameManager.GetGameByKeyAsync(gameKey);
                 if (game == null)
                 {
@@ -427,11 +433,19 @@ namespace Wizscore.Controllers
                 if(!scoreResult.IsSuccess)
                 {
                     ModelState.AddModelError("Error", scoreResult.Error.Message);
+                    return View(vm);
+                }
+
+                var nextDealerUserName = await _gameManager.GetNextDealerUsernameAsync(gameKey);
+                if (nextDealerUserName.IsSuccess)
+                {
+                    ModelState.AddModelError("Error", scoreResult.Error.Message);
+                    return View(vm);
                 }
 
                 vm = new ScoreViewModel()
                 {
-                    IsNextDealer = false,
+                    IsNextDealer = nextDealerUserName.Value == username,
                     PlayerScores = scoreResult.Value.PlayerScores.Select(s => new ScorePlayerViewModel
                     {
                         Username = s.Username,
@@ -454,6 +468,29 @@ namespace Wizscore.Controllers
             }
 
             return View(vm);
+        }
+
+        public async Task<IActionResult> StartNextRound()
+        {
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var result = await _gameManager.StartNextRoundAsync(gameKey, username);
+            if(!result.IsSuccess)
+            {
+                ModelState.AddModelError("Error", result.Error.Message);
+            }
+
+            return RedirectToAction(nameof(Bid));
         }
 
 

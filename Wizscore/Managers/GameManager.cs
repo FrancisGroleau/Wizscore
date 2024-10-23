@@ -34,6 +34,7 @@ namespace Wizscore.Managers
         Task<Result<bool>> FinishRoundAsync(string gameKey, string username);
         Task<Result<Score>> CaclulateScoresAsync(string gameKey);
         Task<Result<string>> GetNextDealerUsernameAsync(string gameKey);
+        Task<Result<Game>> StartNextRoundAsync(string gameKey, string username);
     }
 
     public class GameManager : IGameManager
@@ -45,6 +46,7 @@ namespace Wizscore.Managers
         private readonly IOptionsMonitor<Settings> _settings;
         private readonly IHubContext<WaitingRoomHub, IWaitingRoomHub> _waitingRoomHubContext;
         private readonly IHubContext<BidWaitingRoomHub, IBidWaitingRoomHub> _bidWaitingRoomHubContext;
+        private readonly IHubContext<ScoreHub, IScoreHub> _scoreHubContext;
         private Random _random;
 
 
@@ -54,7 +56,8 @@ namespace Wizscore.Managers
             IBidRepository bidRepository,
             IOptionsMonitor<Settings> settings,
             IHubContext<WaitingRoomHub, IWaitingRoomHub> waitingRoomHubContext,
-            IHubContext<BidWaitingRoomHub, IBidWaitingRoomHub> bidWaitingRoomHubContext)
+            IHubContext<BidWaitingRoomHub, IBidWaitingRoomHub> bidWaitingRoomHubContext,
+            IHubContext<ScoreHub, IScoreHub> scoreHubContext)
         {
             _gameRepository = gameRepository;
             _playerRepository = playerRepository;
@@ -63,6 +66,7 @@ namespace Wizscore.Managers
             _settings = settings;
             _waitingRoomHubContext = waitingRoomHubContext;
             _bidWaitingRoomHubContext = bidWaitingRoomHubContext;
+            _scoreHubContext = scoreHubContext;
             _random = new Random();
         }
 
@@ -474,6 +478,9 @@ namespace Wizscore.Managers
             }
 
             await _bidRepository.UpdateBidActualValueAsync(playerBid.Id, actualValue);
+
+            await _scoreHubContext.Clients.Group(gameKey).BidResultSubmittedAsync();
+
             var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
 
             return Result<Game>.Success(updatedGame!);
@@ -689,6 +696,38 @@ namespace Wizscore.Managers
             }
 
             return Result<string>.Success(nextPlayer.Username);
+        }
+
+        public async Task<Result<Game>> StartNextRoundAsync(string gameKey, string username)
+        {
+            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return Result<Game>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
+            }
+
+            var nextRoundDealerResult = await GetNextDealerUsernameAsync(username);
+            if(!nextRoundDealerResult.IsSuccess)
+            {
+                return Result<Game>.Failure(nextRoundDealerResult.Error);
+            }
+
+            if(nextRoundDealerResult.Value != username)
+            {
+                return Result<Game>.Failure(Error.FromError($"You are not the next dealer", "Game.Players.NotNextDealer"));
+            }
+
+
+            var latestRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
+            var nextDealerPlayer = game.Players.First(f => f.Username == username);
+
+            var nextRound = await _roundRepository.CreateRoundAsync(game.Id, SuitEnum.None, nextDealerPlayer.Id, latestRound.RoundNumber + 1);
+
+            await _scoreHubContext.Clients.Group(gameKey).NextRoundStartedAsync();
+
+            var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
+
+            return Result<Game>.Success(updatedGame!);
         }
     }
 }

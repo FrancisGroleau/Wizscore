@@ -7,6 +7,16 @@ connection.start().then(function () {
 });
 
 
-connection.on("BidResultSubmittedAsync", function (suit) {
+connection.on("BidResultSubmittedAsync", function () {
     window.location.reload();
+});
+
+connection.on("NextRoundStartedAsync", function () {
+    let gotToBidAnchor = document.getElementById("goToBid");
+    if (gotToBidAnchor) {
+        let url = gotToBidAnchor.href;
+        if (url) {
+            window.location.replace(url);
+        }
+    }
 });

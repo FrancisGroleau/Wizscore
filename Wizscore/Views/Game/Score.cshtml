@@ -31,7 +31,15 @@
 </div>
 <div class="row">
     <div class="col-sm-12">
-        <h1>Score Détaillé</h1>
+        @if(Model.IsNextDealer)
+        {
+            <a class="btn btn-outline-success" asp-controller="Game" asp-action="StartNextRound">Start Next Round</a>
+        }
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <h1>Score Round by Round</h1>
     </div>
 </div>
 <div class="row">
@@ -68,6 +76,7 @@
         }
     </div>
 </div>
+<a id="goToBid" style="display: none" asp-controller="Game" asp-action="Bid"></a>
 
 @section Scripts
 {

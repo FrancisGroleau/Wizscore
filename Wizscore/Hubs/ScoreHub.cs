@@ -5,6 +5,8 @@ namespace Wizscore.Hubs
     public interface IScoreHub
     {
         Task BidResultSubmittedAsync();
+
+        Task NextRoundStartedAsync();
     }
 
     public class ScoreHub : Hub<IScoreHub>
