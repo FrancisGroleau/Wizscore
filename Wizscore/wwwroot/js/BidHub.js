@@ -23,8 +23,6 @@ connection.start().then(function () {
 });
 
 
-
-
 connection.on("SuitChangedAsync", function (suit) {
 
     let previouslySelectedSuitButton = document.querySelector('.suit[data-active="true"]');

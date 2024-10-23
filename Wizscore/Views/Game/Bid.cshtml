@@ -14,10 +14,10 @@
             }
 
             <div class="suit-container mb-2">
-                <button type="button" class="btn btn-outline-info suit" data-suit="Spade" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-spade"></i></button>
-                <button type="button" class="btn btn-outline-info suit" data-suit="Heart" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-heart"></i></button>
-                <button type="button" class="btn btn-outline-info suit" data-suit="Club" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-club"></i></button>
-                <button type="button" class="btn btn-outline-info suit" data-suit="Diamond" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-diamond"></i></button>
+                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Spade ? "btn-success": "btn-outline-info") suit" data-suit="Spade" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-spade"></i></button>
+                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Heart ? "btn-success": "btn-outline-info") suit" data-suit="Heart" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-heart"></i></button>
+                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Club ? "btn-success": "btn-outline-info") suit" data-suit="Club" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-club"></i></button>
+                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Diamond ? "btn-success": "btn-outline-info") suit" data-suit="Diamond" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-diamond"></i></button>
             </div>
 
             @if(ViewBag.IsDealer)

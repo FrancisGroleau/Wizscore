@@ -22,6 +22,7 @@ builder.Services.AddTransient<IGameManager, GameManager>();
 builder.Services.AddTransient<IGameRepository, GameRepository>();
 builder.Services.AddTransient<IPlayerRepository, PlayerRepository>();
 builder.Services.AddTransient<IRoundRepository, RoundRepository>(); 
+builder.Services.AddTransient<IBidRepository, BidRepository>();
 
 
 var app = builder.Build();
@@ -49,5 +50,6 @@ app.MapControllerRoute(
 app.MapHub<GameHub>("/gameHub");
 app.MapHub<WaitingRoomHub>("/waitingRoomHub");
 app.MapHub<BidHub>("/bidHub");
+app.MapHub<BidWaitingRoomHub>("/bidWaitingRoomHub");
 
 app.Run();

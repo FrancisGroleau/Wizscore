@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Wizscore.Managers;
 using Wizscore.Models;
 
 namespace Wizscore.Hubs
@@ -16,13 +17,22 @@ namespace Wizscore.Hubs
         {
             var suitValue = ToSuitEnum(suit);
             var httpContext = Context.GetHttpContext();
-
+           
             if (httpContext != null)
             {
                 var gameKey = httpContext.Request.Cookies[Constants.Cookies.GameKey];
-                if (!string.IsNullOrEmpty(gameKey) && suitValue != null)
+                var username = httpContext.Request.Cookies[Constants.Cookies.UserName];
+                if (!string.IsNullOrEmpty(gameKey) && !string.IsNullOrEmpty(username))
                 {
-                    await Clients.Group(gameKey).SuitChangedAsync(suitValue.Value.ToString());
+                    var gameManager = httpContext.RequestServices.GetService<IGameManager>();
+                    if(gameManager != null)
+                    {
+                        var result = await gameManager.ChangeCurrentSuitAsync(gameKey, username, suitValue);
+                        if(result.IsSuccess)
+                        {
+                            await Clients.Group(gameKey).SuitChangedAsync(suitValue.ToString());
+                        }
+                    }
                 }
             }
         }
@@ -44,7 +54,7 @@ namespace Wizscore.Hubs
             await base.OnConnectedAsync();
         }
 
-        private static SuitEnum? ToSuitEnum(string suit)
+        private static SuitEnum ToSuitEnum(string suit)
         {
            if(suit.ToLower() == SuitEnum.Club.ToString().ToLower())
             {
@@ -66,7 +76,7 @@ namespace Wizscore.Hubs
                 return SuitEnum.Diamond;
             }
 
-            return null;
+            return SuitEnum.None;
         }
     }
 }

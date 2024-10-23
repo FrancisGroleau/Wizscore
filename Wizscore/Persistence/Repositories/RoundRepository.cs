@@ -1,10 +1,12 @@
-﻿using Wizscore.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Wizscore.Models;
 
 namespace Wizscore.Persistence.Repositories
 {
     public interface IRoundRepository
     {
         Task<Round> CreateRoundAsync(int gameId, SuitEnum suit, int dealerId, int roundNumber);
+        Task UpdateCurrentSuitAsync(int id, SuitEnum suitValue);
     }
 
     public class RoundRepository : IRoundRepository
@@ -45,5 +47,10 @@ namespace Wizscore.Persistence.Repositories
             };
         }
 
+        public async Task UpdateCurrentSuitAsync(int id, SuitEnum suitValue)
+        {
+            await _context.Rounds.Where(w => w.Id == id)
+                .ExecuteUpdateAsync((setter) => setter.SetProperty(p => p.Suit, suitValue));
+        }
     }
 }

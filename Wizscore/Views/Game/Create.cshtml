@@ -1,11 +1,11 @@
 ﻿@model Wizscore.ViewModels.GameSubmitCreateViewModel
 <div class="row">
-    <div class="sm-col-12">
+    <div class="col-sm-12">
         <h1>Create a new game!</h1>
     </div>
 </div>
 <div class="row">
-    <div class="sm-col-12">
+    <div class="col-sm-12">
         <table class="model-state">
             @foreach (var item in ViewContext.ViewData.ModelState)
             {
@@ -20,7 +20,9 @@
             }
         </table>
     </div>
-    <div class="sm-col-12">
+</div>
+<div class="row">
+    <div class="col-sm-12">
         <form asp-action="SubmitCreate" asp-controller="Game" method="post">
             <label asp-for=NumberOfPlayers class="form-label">Number of player: </label>
             <input asp-for="NumberOfPlayers" class="form-control" aria-describedby="numberOfPlayersHelp" />

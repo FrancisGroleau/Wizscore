@@ -204,6 +204,7 @@ namespace Wizscore.Controllers
             var game = await _gameManager.GetGameByKeyAsync(gameKey);
             var dealerUserNameResult = await _gameManager.GetCurrentDealerUsernameAsync(gameKey);
 
+ 
             ViewBag.IsDealer = dealerUserNameResult.IsSuccess
                     ? dealerUserNameResult.Value == username
                     : false;
@@ -213,9 +214,65 @@ namespace Wizscore.Controllers
                 ?.FirstOrDefault()
                 ?.RoundNumber ?? 1;
 
-            var currentUserToBidUsername = await _gameManager.GetNextPlayerUsernameToBidAsync(gameKey);
+            var currentsuit = await _gameManager.GetCurrentSuitAsync(gameKey);
+
+            ViewBag.Suit = currentsuit.IsSuccess
+                ? currentsuit.Value
+                : Models.SuitEnum.None;
+
+            var nextBiderUsernameResult = await _gameManager.GetNextPlayerUsernameToBidAsync(gameKey);
+
+            if (nextBiderUsernameResult.IsSuccess && username != nextBiderUsernameResult.Value)
+            {
+                return RedirectToAction(nameof(BidWaitingRoom));
+            }
 
             return View();
+        }
+
+        public async Task<IActionResult> BidWaitingRoom()
+        {
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+
+            var vm = new BidWaitingRoomViewModel();
+           
+            var roundNumberResult = await _gameManager.GetCurentRoundNumberAsync(gameKey);
+            if(!roundNumberResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", roundNumberResult.Error.Message);
+                return View(vm);
+            }
+            vm.RoundNumber = roundNumberResult.Value;
+
+            var bidMessagesResult = await _gameManager.GetCurrentRoundBidMessagesAsync(gameKey);
+            if(!bidMessagesResult.IsSuccess) 
+            {
+                ModelState.AddModelError("Error", bidMessagesResult.Error.Message);
+                return View(vm);
+            }
+            vm.BidMessages = bidMessagesResult.Value;
+
+
+            var currentSuitResult = await _gameManager.GetCurrentSuitAsync(gameKey);
+            if (!currentSuitResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", currentSuitResult.Error.Message);
+                return View(vm);
+            }
+            vm.Suit = currentSuitResult.Value;
+
+            return View(vm);
         }
 
         [HttpPost]
@@ -233,7 +290,14 @@ namespace Wizscore.Controllers
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
-            return View(nameof(Score));
+            var result = await _gameManager.SubmitBidAsync(gameKey, username, request.Bid);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError("Error", result.Error.Message);
+            }
+
+
+            return RedirectToAction(nameof(BidWaitingRoom));
         }
 
         

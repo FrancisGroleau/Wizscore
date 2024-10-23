@@ -1,0 +1,64 @@
+﻿@model Wizscore.ViewModels.BidWaitingRoomViewModel
+<div class="row">
+    <div class="sm-col-12">
+        <h1>Round: @Model.RoundNumber</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <table class="model-state">
+            @foreach (var item in ViewContext.ViewData.ModelState)
+            {
+                if (item.Value.Errors.Any())
+                {
+                    <tr>
+                        <td><b>@item.Key</b></td>
+                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
+                        <td>@(string.Join("; ", item.Value.Errors.Select(x => x.ErrorMessage)))</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="suit-container mb-2">
+            <button type="button" class="btn @(Model.Suit == SuitEnum.Spade ? "btn-success": "btn-outline-info") suit" data-suit="Spade" data-active="@(Model.Suit == SuitEnum.Spade ? "true" : "false")" disabled><i class="bi bi-suit-spade"></i></button>
+            <button type="button" class="btn @(Model.Suit == SuitEnum.Heart ? "btn-success": "btn-outline-info") suit" data-suit="Heart" data-active="@(Model.Suit == SuitEnum.Heart ? "true" : "false")" disabled><i class="bi bi-suit-heart"></i></button>
+            <button type="button" class="btn @(Model.Suit == SuitEnum.Club ? "btn-success": "btn-outline-info") suit" data-suit="Club" data-active="@(Model.Suit == SuitEnum.Club ? "true" : "false")" disabled><i class="bi bi-suit-club"></i></button>
+            <button type="button" class="btn @(Model.Suit == SuitEnum.Diamond ? "btn-success": "btn-outline-info") suit" data-suit="Diamond" data-active="@(Model.Suit == SuitEnum.Diamond ? "true" : "false")" disabled><i class="bi bi-suit-diamond"></i></button>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <table class="Table">
+            <tbody>
+                @if (!Model.BidMessages.Any())
+                {
+                    <tr>
+                        <td>
+                            ...Waiting for first player to bid
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var message in Model.BidMessages)
+                    {
+                        <tr>
+                            <td>@message</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<a id="goToBid" style="display: none" asp-controller="Game" asp-action="Bid"></a>
+
+@section Scripts
+{
+    <script src="~/js/BidWaitingRoomHub.js" type="text/javascript"></script>
+}
