@@ -14,5 +14,7 @@ namespace Wizscore.Persistence.Entity
         public bool HasStarted { get; set; }
 
         public List<Player> Players { get; set; }
+
+        public List<Round> Rounds { get; set; }
     }
 }

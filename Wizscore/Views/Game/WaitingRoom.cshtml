@@ -38,6 +38,18 @@
                         @if (Model.IsGameCreator && isPlayerRow && Model.Players[i].Username != Model.CurrentUserName)
                         {
                             <td>
+                                @if (i < Model.Players.Count)
+                                {
+                                    <a class="btn btn-outline-info" asp-controller="Game" asp-action="MovePlayerDown" asp-route-username="@Model.Players[i].Username">
+                                        <i class="bi bi-arrow-up-square"></i>
+                                    </a>
+                                }
+                                @if (i > 0)
+                                {
+                                    <a class="btn btn-outline-info" asp-controller="Game" asp-action="MovePlayerUp" asp-route-username="@Model.Players[i].Username">
+                                        <i class="bi bi-arrow-down-square"></i>
+                                    </a>
+                                }
                                 <a class="btn btn-outline-danger" asp-controller="Game" asp-action="RemovePlayer" asp-route-username="@Model.Players[i].Username">
                                     <i class="bi bi-trash"></i>
                                 </a>

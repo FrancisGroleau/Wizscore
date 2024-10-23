@@ -87,7 +87,9 @@ namespace Wizscore.Controllers
                 NumberOfPlayer = game.NumberOfPlayers,
                 IsGameCreator = isGameCreator,
                 CurrentUserName = username,
-                Players = game.Players.Select(s => new WaitingRoomPlayerViewModel() { Username = s.Username }).ToList()
+                Players = game.Players
+                .OrderBy(o => o.PlayerNumber)
+                .Select(s => new WaitingRoomPlayerViewModel() { Username = s.Username }).ToList()
             };
 
 
@@ -134,6 +136,44 @@ namespace Wizscore.Controllers
             return RedirectToAction(nameof(WaitingRoom));
         }
 
+        public async Task<IActionResult> MovePlayerUp(string username)
+        {
+            //if we are already in a game we can't join a new one
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            var currentUsername = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var result = await _gameManager.MovePlayerUpAsync(gameKey, username, currentUsername);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError("Error", result.Error.Message);
+            }
+
+            return RedirectToAction(nameof(WaitingRoom));
+        }
+
+        public async Task<IActionResult> MovePlayerDown(string username)
+        {
+            //if we are already in a game we can't join a new one
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            var currentUsername = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var result = await _gameManager.MovePlayerDownAsync(gameKey, username, currentUsername);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError("Error", result.Error.Message);
+            }
+
+            return RedirectToAction(nameof(WaitingRoom));
+        }
+
         public async Task<IActionResult> Start(string gameKey)
         {
             var username = Request.Cookies[Constants.Cookies.UserName];
@@ -162,22 +202,41 @@ namespace Wizscore.Controllers
             }
 
             var game = await _gameManager.GetGameByKeyAsync(gameKey);
-            var isCreator = await _gameManager.IsPlayerWithUsernameIsCreatorAsync(game, username);
+            var dealerUserNameResult = await _gameManager.GetCurrentDealerUsernameAsync(gameKey);
 
-            var vm = new BidViewModel()
-            {
-                IsDealer = isCreator,
-            };
+            ViewBag.IsDealer = dealerUserNameResult.IsSuccess
+                    ? dealerUserNameResult.Value == username
+                    : false;
 
-            return View(vm);
+            ViewBag.RoundNumber = game?.Rounds
+                ?.OrderByDescending(x => x.RoundNumber)
+                ?.FirstOrDefault()
+                ?.RoundNumber ?? 1;
+
+            var currentUserToBidUsername = await _gameManager.GetNextPlayerUsernameToBidAsync(gameKey);
+
+            return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> BidSubmit([FromForm] BidViewModel request)
+        public async Task<IActionResult> BidSubmit([FromForm] BidSubmitViewModel request)
         {
+            var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+            if (string.IsNullOrEmpty(gameKey))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            var username = Request.Cookies[Constants.Cookies.UserName];
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
 
             return View(nameof(Score));
         }
+
+        
 
         public async Task<IActionResult> Score()
         {

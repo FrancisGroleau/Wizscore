@@ -9,5 +9,6 @@
         public bool HasStarted { get; set; }
 
         public List<Player> Players { get; set; } = new List<Player>();
+        public List<Round> Rounds { get; set; } = new List<Round>();
     }
 }

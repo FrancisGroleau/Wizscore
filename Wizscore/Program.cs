@@ -18,9 +18,10 @@ builder.Services.AddSignalR();
 
 
 // Register services
-builder.Services.AddTransient<IGameRepository, GameRepository>();
 builder.Services.AddTransient<IGameManager, GameManager>();
+builder.Services.AddTransient<IGameRepository, GameRepository>();
 builder.Services.AddTransient<IPlayerRepository, PlayerRepository>();
+builder.Services.AddTransient<IRoundRepository, RoundRepository>(); 
 
 
 var app = builder.Build();

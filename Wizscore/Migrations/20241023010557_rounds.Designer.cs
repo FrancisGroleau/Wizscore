@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Wizscore.Persistence;
 
@@ -10,9 +11,11 @@ using Wizscore.Persistence;
 namespace Wizscore.Migrations
 {
     [DbContext(typeof(WizscoreContext))]
-    partial class WizscoreContextModelSnapshot : ModelSnapshot
+    [Migration("20241023010557_rounds")]
+    partial class rounds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,30 +23,6 @@ namespace Wizscore.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Wizscore.Persistence.Entities.Bid", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BidValue")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoundId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoundId");
-
-                    b.ToTable("Bids");
-                });
 
             modelBuilder.Entity("Wizscore.Persistence.Entities.Player", b =>
                 {
@@ -54,9 +33,6 @@ namespace Wizscore.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerNumber")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
@@ -86,10 +62,6 @@ namespace Wizscore.Migrations
 
                     b.Property<int>("RoundNumber")
                         .HasColumnType("int");
-
-                    b.Property<string>("Suit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -124,15 +96,6 @@ namespace Wizscore.Migrations
                     b.ToTable("Games");
                 });
 
-            modelBuilder.Entity("Wizscore.Persistence.Entities.Bid", b =>
-                {
-                    b.HasOne("Wizscore.Persistence.Entities.Round", null)
-                        .WithMany("Bids")
-                        .HasForeignKey("RoundId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Wizscore.Persistence.Entities.Player", b =>
                 {
                     b.HasOne("Wizscore.Persistence.Entity.Game", null)
@@ -149,11 +112,6 @@ namespace Wizscore.Migrations
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Wizscore.Persistence.Entities.Round", b =>
-                {
-                    b.Navigation("Bids");
                 });
 
             modelBuilder.Entity("Wizscore.Persistence.Entity.Game", b =>

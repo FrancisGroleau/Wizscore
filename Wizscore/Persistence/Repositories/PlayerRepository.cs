@@ -1,13 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Wizscore.Models;
+using Wizscore.Persistence.Entity;
 
 namespace Wizscore.Persistence.Repositories
 {
     public interface IPlayerRepository
     {
-        Task<Player> CreatePlayerAsync(int gameId, string userName);
-
+        Task<Player> CreatePlayerAsync(int gameId, string userName, int playerNumber);
         Task<Player?> GetPlayerByGameIdAndUsernameAsync(int gameId, string userName);
+        Task<Player?> GetPlayerByIdAsync(int playerId);
+        Task UpdatePlayerNumberAsync(int playerId, int playerNumber);
     }
     public class PlayerRepository : IPlayerRepository
     {
@@ -17,12 +19,13 @@ namespace Wizscore.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<Player> CreatePlayerAsync(int gameId, string userName)
+        public async Task<Player> CreatePlayerAsync(int gameId, string userName, int playerNumber)
         {
             var entity = new Entities.Player()
             {
                 Username = userName,
                 GameId = gameId,
+                PlayerNumber = playerNumber
             };
 
             _context.Players.Add(entity);
@@ -31,7 +34,8 @@ namespace Wizscore.Persistence.Repositories
             var model = new Player()
             {
                 Id = entity.Id,
-                Username = entity.Username
+                Username = entity.Username,
+                PlayerNumber = entity.PlayerNumber
             };
 
             return model;
@@ -49,9 +53,36 @@ namespace Wizscore.Persistence.Repositories
             {
                 Id = entity.Id,
                 Username = entity.Username,
+                PlayerNumber = entity.PlayerNumber
             };
 
             return model;
+        }
+
+        public async Task<Player?> GetPlayerByIdAsync(int playerId)
+        {
+
+            var entity = await _context.Players.FirstOrDefaultAsync(f => f.Id == playerId);
+            if (entity == null)
+            {
+                return null;
+            }
+
+            var model = new Player()
+            {
+                Id = entity.Id,
+                Username = entity.Username,
+                PlayerNumber= entity.PlayerNumber
+            };
+
+            return model;
+        }
+
+        public async Task UpdatePlayerNumberAsync(int playerId, int playerNumber)
+        {
+            await _context.Players
+                .Where(w => w.Id == playerId)
+                .ExecuteUpdateAsync((setter) => setter.SetProperty(p => p.PlayerNumber, playerNumber));
         }
     }
 }

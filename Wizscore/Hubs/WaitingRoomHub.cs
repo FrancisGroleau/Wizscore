@@ -5,8 +5,7 @@ namespace Wizscore.Hubs
 {
     public interface IWaitingRoomHub
     {
-        Task PlayerAddedAsync();
-        Task PlayerRemovedAsync();
+        Task RefreshPlayerListAsync();
         Task GameStartedAsync();
     }
 

@@ -2,12 +2,8 @@
 
 namespace Wizscore.ViewModels
 {
-    public class BidViewModel
-    {
-        public bool IsDealer { get; set; }
-
+    public class BidSubmitViewModel
+    { 
         public int Bid { get; set; }
-
-        public int RoundNumber { get; set; }
     }
 }

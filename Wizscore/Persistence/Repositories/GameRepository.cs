@@ -50,6 +50,8 @@ namespace Wizscore.Persistence.Repositories
         {
             var entity = await _context.Games
                 .Include(g => g.Players)
+                .Include(g => g.Rounds)
+                .ThenInclude(r => r.Bids)
                 .FirstOrDefaultAsync(f => f.Key == gameKey);
 
             if (entity == null)
@@ -67,8 +69,24 @@ namespace Wizscore.Persistence.Repositories
                 Players = entity.Players.Select(s => new Player()
                 {
                     Id = s.Id,
-                    Username = s.Username
-                }).ToList()
+                    Username = s.Username,
+                    PlayerNumber = s.PlayerNumber
+                }).ToList(),
+                Rounds = entity.Rounds.Select(s => new Round()
+                {
+                    Id = s.Id,
+                    DealerId = s.DealerId,
+                    GameId = s.GameId,
+                    RoundNumber = s.RoundNumber,
+                    Suit = s.Suit,
+                    Bids = s.Bids.Select(b => new Bid()
+                    {
+                        Id  = b.Id,
+                        BidValue = b.BidValue,
+                        PlayerId = b.PlayerId,
+                        RoundId = b.RoundId 
+                    }).ToList(),
+                }).ToList(),
             };
         }
 
