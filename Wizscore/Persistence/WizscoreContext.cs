@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Wizscore.Persistence.Entities;
-using Wizscore.Persistence.Entity;
 
 namespace Wizscore.Persistence
 {

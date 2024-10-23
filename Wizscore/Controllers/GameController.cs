@@ -2,9 +2,6 @@
 using Microsoft.Extensions.Options;
 using Wizscore.Configuration;
 using Wizscore.Managers;
-using Wizscore.Models;
-using Wizscore.Persistence.Entity;
-using Wizscore.Persistence.Repositories;
 using Wizscore.ViewModels;
 
 namespace Wizscore.Controllers
@@ -88,8 +85,11 @@ namespace Wizscore.Controllers
                 IsGameCreator = isGameCreator,
                 CurrentUserName = username,
                 Players = game.Players
-                .OrderBy(o => o.PlayerNumber)
-                .Select(s => new WaitingRoomPlayerViewModel() { Username = s.Username }).ToList()
+                .Select(s => new WaitingRoomPlayerViewModel() 
+                { 
+                    Username = s.Username,
+                    PlayerNumber = s.PlayerNumber
+                }).ToList()
             };
 
 

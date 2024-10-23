@@ -30,7 +30,7 @@ namespace Wizscore.Persistence.Repositories
 
         public async Task<Game> CreateGameAsync(int numberOfPlayers, string gameKey)
         {
-            var entity = new Entity.Game()
+            var entity = new Entities.Game()
             {
                 NumberOfPlayers = numberOfPlayers,
                 Key = gameKey
@@ -38,12 +38,7 @@ namespace Wizscore.Persistence.Repositories
             _context.Games.Add(entity);
             await _context.SaveChangesAsync();
 
-            return new Game()
-            {
-                Id = entity.Id,
-                Key = entity.Key,
-                NumberOfPlayers = entity.NumberOfPlayers,
-            };
+            return ToModel(entity);
         }
 
         public async Task<Game?> GetGameByKeyAsync(string gameKey)
@@ -59,54 +54,16 @@ namespace Wizscore.Persistence.Repositories
                 return null;
             }
 
-            return new Game()
-            {
-                Id = entity.Id,
-                Key = entity.Key,
-                NumberOfPlayers = entity.NumberOfPlayers,
-                PlayerCreatorId = entity.PlayerCreatorId,
-                HasStarted = entity.HasStarted,
-                Players = entity.Players.Select(s => new Player()
-                {
-                    Id = s.Id,
-                    Username = s.Username,
-                    PlayerNumber = s.PlayerNumber
-                }).ToList(),
-                Rounds = entity.Rounds.Select(s => new Round()
-                {
-                    Id = s.Id,
-                    DealerId = s.DealerId,
-                    GameId = s.GameId,
-                    RoundNumber = s.RoundNumber,
-                    Suit = s.Suit,
-                    Bids = s.Bids.Select(b => new Bid()
-                    {
-                        Id  = b.Id,
-                        BidValue = b.BidValue,
-                        PlayerId = b.PlayerId,
-                        RoundId = b.RoundId 
-                    }).ToList(),
-                }).ToList(),
-            };
+            return ToModel(entity);
+      
         }
 
         public async Task<Game> RemovePlayerAsync(int gameId, int id)
         {
             await _context.Players.Where(w => w.GameId == gameId && w.Id == id).ExecuteDeleteAsync();
             var entity = await _context.Games.FirstAsync(f => f.Id == gameId);
-            return new Game()
-            {
-                Id = entity.Id,
-                Key = entity.Key,
-                NumberOfPlayers = entity.NumberOfPlayers,
-                PlayerCreatorId = entity.PlayerCreatorId,
-                HasStarted = entity.HasStarted,
-                Players = entity.Players.Select(s => new Player()
-                {
-                    Id = s.Id,
-                    Username = s.Username
-                }).ToList()
-            };
+
+            return ToModel(entity);
         }
 
         public async Task SetGameHasStartAsync(int gameId)
@@ -149,6 +106,43 @@ namespace Wizscore.Persistence.Repositories
             _context.Update(entity);
 
             await _context.SaveChangesAsync();
+        }
+
+        private static Game ToModel(Entities.Game entity)
+        {
+            return new Game()
+            {
+                Id = entity.Id,
+                Key = entity.Key,
+                NumberOfPlayers = entity.NumberOfPlayers,
+                PlayerCreatorId = entity.PlayerCreatorId,
+                HasStarted = entity.HasStarted,
+                Players = entity.Players
+                                  ?.OrderBy(o => o.PlayerNumber)
+                                  ?.Select(s => new Player()
+                                  {
+                                      Id = s.Id,
+                                      Username = s.Username,
+                                      PlayerNumber = s.PlayerNumber
+                                  })?.ToList() ?? new List<Player>(),
+                Rounds = entity.Rounds
+                ?.OrderBy(o => o.RoundNumber)
+                ?.Select(s => new Round()
+                {
+                    Id = s.Id,
+                    DealerId = s.DealerId,
+                    GameId = s.GameId,
+                    RoundNumber = s.RoundNumber,
+                    Suit = s.Suit,
+                    Bids = s.Bids?.Select(b => new Bid()
+                    {
+                        Id = b.Id,
+                        BidValue = b.BidValue,
+                        PlayerId = b.PlayerId,
+                        RoundId = b.RoundId
+                    })?.ToList() ?? new List<Bid>(),
+                })?.ToList() ?? new List<Round>()
+            };
         }
     }
 }

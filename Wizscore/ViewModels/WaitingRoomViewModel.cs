@@ -14,5 +14,6 @@ namespace Wizscore.ViewModels
     public class WaitingRoomPlayerViewModel()
     {
         public string Username { get; set; }
+        public int PlayerNumber { get; set; }
     }
 }

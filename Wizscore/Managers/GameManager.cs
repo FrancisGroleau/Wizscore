@@ -141,6 +141,14 @@ namespace Wizscore.Managers
             if(game.Players.Count != game.NumberOfPlayers)
             {
                 await _gameRepository.SetGameNumbersOfPlayerAsync(game.Id, game.Players.Count);
+
+                //We also need to make sure there is not gap between players
+                for (int i = 0; i < game.Players.Count; i++)
+                {
+                    var playerId = game.Players[i].Id;
+                    await _playerRepository.UpdatePlayerNumberAsync(playerId, i + 1);
+                }
+
                 game.NumberOfPlayers = game.Players.Count;
             }
 
@@ -281,9 +289,12 @@ namespace Wizscore.Managers
                 return Result<Game>.Failure(Error.FromError($"Cannot move up player past number of players in game: {game.NumberOfPlayers}", "Game.Players.CannotMoveUp"));
             }
 
-            var playerAfter = game.Players[player.PlayerNumber + 1];
-            await _playerRepository.UpdatePlayerNumberAsync(playerAfter.Id, playerAfter.PlayerNumber - 1);
-            await _playerRepository.UpdatePlayerNumberAsync(player.Id, playerAfter.PlayerNumber + 1);
+            var playerAfter = game.Players.FirstOrDefault(f => f.PlayerNumber == player.PlayerNumber + 1);
+            if (playerAfter != null)
+            {
+                await _playerRepository.UpdatePlayerNumberAsync(playerAfter.Id, playerAfter.PlayerNumber - 1);
+            }
+            await _playerRepository.UpdatePlayerNumberAsync(player.Id, player.PlayerNumber + 1);
 
             await _waitingRoomHubContext.Clients.Group(gameKey).RefreshPlayerListAsync();
 
@@ -321,8 +332,11 @@ namespace Wizscore.Managers
                 return Result<Game>.Failure(Error.FromError($"Cannot move down first player", "Game.Players.CannotMoveDown"));
             }
 
-            var playerBefore = game.Players[player.PlayerNumber - 1];
-            await _playerRepository.UpdatePlayerNumberAsync(playerBefore.Id, playerBefore.PlayerNumber + 1);
+            var playerBefore = game.Players.FirstOrDefault(f => f.PlayerNumber == player.PlayerNumber - 1);
+            if (playerBefore != null)
+            {
+                await _playerRepository.UpdatePlayerNumberAsync(playerBefore.Id, playerBefore.PlayerNumber + 1);
+            }
             await _playerRepository.UpdatePlayerNumberAsync(player.Id, player.PlayerNumber - 1);
 
             await _waitingRoomHubContext.Clients.Group(gameKey).RefreshPlayerListAsync();

@@ -30,29 +30,34 @@
             <tbody>
                 @for (int i = 0; i < Model.NumberOfPlayer; i++)
                 {
-                    var isPlayerRow = i < Model.Players.Count;
-                    var value = isPlayerRow ? Model.Players[i].Username : $"Waiting for player {i + 1} to join...";
-                    <tr data-is-player-row="@(isPlayerRow ? Boolean.TrueString.ToLower() : Boolean.FalseString.ToLower())">
+                    var isPlayerRow = Model.Players.Any(a => a.PlayerNumber == i + 1);
+                    var value = isPlayerRow 
+                        ? Model.Players.First(f => f.PlayerNumber == i + 1).Username
+                        : $"Waiting for player {i + 1} to join...";
+                    <tr>
                         <td>@(i + 1)</td>
                         <td>@value</td>
-                        @if (Model.IsGameCreator && isPlayerRow && Model.Players[i].Username != Model.CurrentUserName)
+                        @if (Model.IsGameCreator && isPlayerRow)
                         {
                             <td>
-                                @if (i < Model.Players.Count)
+                                @if (i > 0)
                                 {
-                                    <a class="btn btn-outline-info" asp-controller="Game" asp-action="MovePlayerDown" asp-route-username="@Model.Players[i].Username">
+                                    <a class="btn btn-outline-info" asp-controller="Game" asp-action="MovePlayerDown" asp-route-username="@Model.Players.First(f => f.PlayerNumber == i + 1).Username">
                                         <i class="bi bi-arrow-up-square"></i>
                                     </a>
                                 }
-                                @if (i > 0)
+                                @if (i < Model.NumberOfPlayer - 1)
                                 {
-                                    <a class="btn btn-outline-info" asp-controller="Game" asp-action="MovePlayerUp" asp-route-username="@Model.Players[i].Username">
+                                    <a class="btn btn-outline-info" asp-controller="Game" asp-action="MovePlayerUp" asp-route-username="@Model.Players.First(f => f.PlayerNumber == i + 1).Username">
                                         <i class="bi bi-arrow-down-square"></i>
                                     </a>
                                 }
-                                <a class="btn btn-outline-danger" asp-controller="Game" asp-action="RemovePlayer" asp-route-username="@Model.Players[i].Username">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                @if (Model.Players.First(f => f.PlayerNumber == i + 1).Username != Model.CurrentUserName)
+                                {
+                                    <a class="btn btn-outline-danger" asp-controller="Game" asp-action="RemovePlayer" asp-route-username="@Model.Players.First(f => f.PlayerNumber == i + 1).Username">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
                             </td>
                         }
                     </tr>

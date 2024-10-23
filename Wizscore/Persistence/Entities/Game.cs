@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Wizscore.Persistence.Entities;
 
-namespace Wizscore.Persistence.Entity
+namespace Wizscore.Persistence.Entities
 {
     public class Game
     {

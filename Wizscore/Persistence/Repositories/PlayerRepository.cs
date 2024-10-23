@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Wizscore.Models;
-using Wizscore.Persistence.Entity;
 
 namespace Wizscore.Persistence.Repositories
 {
@@ -31,14 +30,7 @@ namespace Wizscore.Persistence.Repositories
             _context.Players.Add(entity);
             await _context.SaveChangesAsync();
 
-            var model = new Player()
-            {
-                Id = entity.Id,
-                Username = entity.Username,
-                PlayerNumber = entity.PlayerNumber
-            };
-
-            return model;
+            return ToModel(entity);
         }
 
         public async Task<Player?> GetPlayerByGameIdAndUsernameAsync(int gameId, string userName)
@@ -49,33 +41,19 @@ namespace Wizscore.Persistence.Repositories
                 return null;
             }
 
-            var model = new Player()
-            {
-                Id = entity.Id,
-                Username = entity.Username,
-                PlayerNumber = entity.PlayerNumber
-            };
-
-            return model;
+            
+            return ToModel(entity);
         }
 
         public async Task<Player?> GetPlayerByIdAsync(int playerId)
         {
-
             var entity = await _context.Players.FirstOrDefaultAsync(f => f.Id == playerId);
             if (entity == null)
             {
                 return null;
             }
 
-            var model = new Player()
-            {
-                Id = entity.Id,
-                Username = entity.Username,
-                PlayerNumber= entity.PlayerNumber
-            };
-
-            return model;
+            return ToModel(entity);
         }
 
         public async Task UpdatePlayerNumberAsync(int playerId, int playerNumber)
@@ -83,6 +61,16 @@ namespace Wizscore.Persistence.Repositories
             await _context.Players
                 .Where(w => w.Id == playerId)
                 .ExecuteUpdateAsync((setter) => setter.SetProperty(p => p.PlayerNumber, playerNumber));
+        }
+
+        private static Player ToModel(Entities.Player entity)
+        {
+            return new Player()
+            {
+                Id = entity.Id,
+                Username = entity.Username,
+                PlayerNumber = entity.PlayerNumber
+            };
         }
     }
 }

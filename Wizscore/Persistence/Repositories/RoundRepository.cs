@@ -29,6 +29,12 @@ namespace Wizscore.Persistence.Repositories
             await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
 
+            return ToModel(entity);
+        }
+        
+
+        private static Round ToModel(Entities.Round entity)
+        {
             return new Round()
             {
                 Id = entity.Id,
@@ -38,5 +44,6 @@ namespace Wizscore.Persistence.Repositories
                 DealerId = entity.DealerId
             };
         }
+
     }
 }
