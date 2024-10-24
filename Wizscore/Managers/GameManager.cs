@@ -183,12 +183,13 @@ namespace Wizscore.Managers
             await _gameRepository.SetGameHasStartAsync(game.Id);
             game.HasStarted = true;
 
-            //Notify everyone that the game has started
-            await _waitingRoomHubContext.Clients.Group(gameKey).GameStartedAsync();
-
             //Create the first round
             var firstDealer = game.Players.First(f => f.PlayerNumber == 1);
             await _roundRepository.CreateRoundAsync(game.Id, SuitEnum.None, firstDealer.Id, 1);
+
+
+            //Notify everyone that the game has started
+            await _waitingRoomHubContext.Clients.Group(gameKey).GameStartedAsync();
 
             return Result<Game>.Success(game);
         }
@@ -706,7 +707,7 @@ namespace Wizscore.Managers
                 return Result<Game>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
             }
 
-            var nextRoundDealerResult = await GetNextDealerUsernameAsync(username);
+            var nextRoundDealerResult = await GetNextDealerUsernameAsync(gameKey);
             if(!nextRoundDealerResult.IsSuccess)
             {
                 return Result<Game>.Failure(nextRoundDealerResult.Error);

@@ -1,26 +1,8 @@
 ﻿@model Wizscore.ViewModels.JoinSubmitViewModel
-<div class="row">
-    <div class="col-sm-12">
-        <h1>Join a game!</h1>
-    </div>
-</div>
-<div class="row">
-    <div class="col-sm-12">
-        <table class="table">
-            @foreach (var item in ViewContext.ViewData.ModelState)
-            {
-                if (item.Value.Errors.Any())
-                {
-                    <tr class="table-danger">
-                        <td><b>@item.Key</b></td>
-                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
-                        <td>@(string.Join("; ", item.Value.Errors.Select(x => x.ErrorMessage)))</td>
-                    </tr>
-                }
-            }
-        </table>
-    </div>
-</div>
+@{
+    Layout = "_GameLayout";
+    ViewData["Heading"] = "Join a game!";
+}
 <div class="row">
     <div class="col-sm-12">
         <form asp-action="JoinSubmit" asp-controller="Game" method="post">

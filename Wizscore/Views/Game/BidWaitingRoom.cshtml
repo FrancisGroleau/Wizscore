@@ -1,26 +1,8 @@
 ﻿@model Wizscore.ViewModels.BidWaitingRoomViewModel
-<div class="row">
-    <div class="sm-col-12">
-        <h1>Round: @Model.RoundNumber</h1>
-    </div>
-</div>
-<div class="row">
-    <div class="col-sm-12">
-        <table class="model-state">
-            @foreach (var item in ViewContext.ViewData.ModelState)
-            {
-                if (item.Value?.Errors?.Any() ?? false)
-                {
-                    <tr>
-                        <td><b>@item.Key</b></td>
-                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
-                        <td>@(string.Join("; ", item.Value?.Errors?.Select(x => x.ErrorMessage) ?? Enumerable.Empty<string>()))</td>
-                    </tr>
-                }
-            }
-        </table>
-    </div>
-</div>
+@{
+    Layout = "_GameLayout";
+    ViewData["Heading"] = $"Round: {Model.RoundNumber}";
+}
 <div class="row">
     <div class="col-sm-12">
         <div class="suit-container mb-2">
@@ -31,15 +13,15 @@
         </div>
     </div>
 </div>
-<div class="row">
+<div class="row mt-3">
     <div class="col-sm-12">
-        <table class="Table">
+        <table class="table table-borderless">
             <tbody>
                 @if (!Model.BidMessages.Any())
                 {
                     <tr>
                         <td>
-                            ...Waiting for first player to bid
+                            <p class="text-primary">...Waiting for first player to bid </p>
                         </td>
                     </tr>
                 }
@@ -48,7 +30,9 @@
                     @foreach (var message in Model.BidMessages)
                     {
                         <tr>
-                            <td>@message</td>
+                            <td class="fs-4">
+                                @message
+                             </td>
                         </tr>
                     }
                 }
@@ -58,15 +42,15 @@
 </div>
 @if(!Model.IsDealer && Model.IsRoundFinished)
 {
-    <div class="row">
+    <div class="row mt-3">
         <div class="col-sm-12">
-            <h4>Waiting for the dealer to finish the round.</h4>
+            <h5 class="text-primary">Waiting for the dealer to finish the round.</h5>
         </div>
     </div>
 }
 @if (Model.IsDealer && Model.IsRoundFinished)
 {
-    <div class="row">
+    <div class="row mt-3">
         <div class="col-sm-12 justify-content-center align-items-center">
             <a class="btn btn-outline-success" asp-controller="Game" asp-action="FinishRound">Finish Round</a>
         </div>

@@ -1,9 +1,8 @@
 ﻿@model Wizscore.ViewModels.WaitingRoomViewModel
-<div class="row">
-    <div class="sm-col-12">
-        <h1>Waiting for player to join.</h1>
-    </div>
-</div>
+@{
+    Layout = "_GameLayout";
+    ViewData["Heading"] = "Lobby";
+}
 <div class="row">
     <div class="col-sm-6">
         Game Key: @Model.GameKey

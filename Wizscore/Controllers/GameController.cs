@@ -26,7 +26,7 @@ namespace Wizscore.Controllers
             _logger = logger;
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create() => View(nameof(Create));
 
 
         [HttpPost]
@@ -99,14 +99,12 @@ namespace Wizscore.Controllers
             };
 
 
-            return View(vm);
+            return View(nameof(WaitingRoom), vm);
         }
 
 
-        public IActionResult Join()
-        {
-            return View();
-        }
+        public IActionResult Join() => View(nameof(Join));
+        
 
         [HttpPost]
         public async Task<IActionResult> JoinSubmit([FromForm] JoinSubmitViewModel request)
@@ -137,6 +135,7 @@ namespace Wizscore.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
+                return await WaitingRoom();
             }
 
             return RedirectToAction(nameof(WaitingRoom));
@@ -156,6 +155,7 @@ namespace Wizscore.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
+                return await WaitingRoom();
             }
 
             return RedirectToAction(nameof(WaitingRoom));
@@ -175,6 +175,7 @@ namespace Wizscore.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
+                return await WaitingRoom();
             }
 
             return RedirectToAction(nameof(WaitingRoom));
@@ -238,7 +239,7 @@ namespace Wizscore.Controllers
                 return RedirectToAction(nameof(BidWaitingRoom));
             }
 
-            return View();
+            return View(nameof(Bid));
         }
 
         public async Task<IActionResult> BidWaitingRoom()
@@ -262,7 +263,7 @@ namespace Wizscore.Controllers
             if(!roundNumberResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", roundNumberResult.Error.Message);
-                return View(vm);
+                return View(nameof(BidWaitingRoom),vm);
             }
             vm.RoundNumber = roundNumberResult.Value;
 
@@ -270,7 +271,7 @@ namespace Wizscore.Controllers
             if(!bidMessagesResult.IsSuccess) 
             {
                 ModelState.AddModelError("Error", bidMessagesResult.Error.Message);
-                return View(vm);
+                return View(nameof(BidWaitingRoom),vm);
             }
             vm.BidMessages = bidMessagesResult.Value;
 
@@ -279,7 +280,7 @@ namespace Wizscore.Controllers
             if (!currentSuitResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", currentSuitResult.Error.Message);
-                return View(vm);
+                return View(nameof(BidWaitingRoom),vm);
             }
             vm.Suit = currentSuitResult.Value;
 
@@ -287,7 +288,7 @@ namespace Wizscore.Controllers
             if (!dealerPlayerUsernameResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", dealerPlayerUsernameResult.Error.Message);
-                return View(vm);
+                return View(nameof(BidWaitingRoom),vm);
             }
             vm.IsDealer = username == dealerPlayerUsernameResult.Value;
 
@@ -295,12 +296,12 @@ namespace Wizscore.Controllers
             if (!isCurrentRoundFinishedResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", isCurrentRoundFinishedResult.Error.Message);
-                return View(vm);
+                return View(nameof(BidWaitingRoom), vm);
             }
             vm.IsRoundFinished = isCurrentRoundFinishedResult.Value;
 
 
-            return View(vm);
+            return View(nameof(BidWaitingRoom), vm);
         }
 
         [HttpPost]
@@ -322,6 +323,7 @@ namespace Wizscore.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
+                return await Bid();
             }
 
 
@@ -346,7 +348,7 @@ namespace Wizscore.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
-                return RedirectToAction(nameof(BidWaitingRoom));
+                return await BidWaitingRoom();
             }
 
             return RedirectToAction(nameof(BidResult));
@@ -371,11 +373,11 @@ namespace Wizscore.Controllers
             if (!roundNumberResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", roundNumberResult.Error.Message);
-                return View();
+                return View(nameof(BidResult));
             }
             ViewBag.RoundNumber = roundNumberResult.Value;
 
-            return View();
+            return View(nameof(BidResult));
         }
 
         [HttpPost]
@@ -397,7 +399,7 @@ namespace Wizscore.Controllers
             if(!submitBidResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", submitBidResult.Error.Message);
-                return RedirectToAction(nameof(BidResult));
+                return await BidResult();
             }
 
             return RedirectToAction(nameof(Score));
@@ -433,14 +435,14 @@ namespace Wizscore.Controllers
                 if(!scoreResult.IsSuccess)
                 {
                     ModelState.AddModelError("Error", scoreResult.Error.Message);
-                    return View(vm);
+                    return View(nameof(Score), vm);
                 }
 
                 var nextDealerUserName = await _gameManager.GetNextDealerUsernameAsync(gameKey);
-                if (nextDealerUserName.IsSuccess)
+                if (!nextDealerUserName.IsSuccess)
                 {
                     ModelState.AddModelError("Error", scoreResult.Error.Message);
-                    return View(vm);
+                    return View(nameof(Score), vm);
                 }
 
                 vm = new ScoreViewModel()
@@ -467,7 +469,7 @@ namespace Wizscore.Controllers
                 ModelState.AddModelError("Error", ex.Message);
             }
 
-            return View(vm);
+            return View(nameof(Score), vm);
         }
 
         public async Task<IActionResult> StartNextRound()
@@ -488,6 +490,7 @@ namespace Wizscore.Controllers
             if(!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
+                return await Score();
             }
 
             return RedirectToAction(nameof(Bid));

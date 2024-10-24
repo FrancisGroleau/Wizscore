@@ -1,12 +1,11 @@
 ﻿@model Wizscore.ViewModels.BidResultSubmitViewModel
-<div class="row">
-    <div class="sm-col-12">
-        <h1>Enter your actual value for round: @ViewBag.RoundNumber</h1>
-    </div>
-</div>
+@{
+    Layout = "_GameLayout";
+    ViewData["Heading"] = $"Enter your actual value for round: {ViewBag.RoundNumber}";
+}
 <div class="row">
     <div class="col-sm-12">
-        <table class="model-state">
+        <table class="table">
             @foreach (var item in ViewContext.ViewData.ModelState)
             {
                 if (item.Value?.Errors?.Any() ?? false)

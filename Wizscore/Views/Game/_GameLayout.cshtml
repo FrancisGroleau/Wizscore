@@ -1,0 +1,32 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="sm-col-12">
+        <h1>@ViewData["Heading"]</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <table class="table">
+            @foreach (var item in ViewContext.ViewData.ModelState)
+            {
+                if (item.Value?.Errors?.Any() ?? false)
+                {
+                    <tr class="table-danger">
+                        <td><b>@item.Key</b></td>
+                        <td>@(item.Value == null ? "<null>" : item.Value.RawValue)</td>
+                        <td>@(string.Join("; ", item.Value?.Errors?.Select(x => x.ErrorMessage) ?? Enumerable.Empty<string>()))</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+</div>
+@RenderBody()
+
+
+@section Scripts{
+    @await RenderSectionAsync("Scripts", required: false)
+}
