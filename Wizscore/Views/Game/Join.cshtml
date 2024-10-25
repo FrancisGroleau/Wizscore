@@ -8,7 +8,14 @@
         <form asp-action="JoinSubmit" asp-controller="Game" method="post">
 
             <label asp-for=GameKey class="form-label">Game Key: </label>
-            <input asp-for="GameKey" class="form-control" aria-describedby="gamekeyHelp" />
+            @if (!string.IsNullOrEmpty(ViewBag.gameKey))
+            {
+                <input asp-for="GameKey" class="form-control" aria-describedby="gamekeyHelp" value="@ViewBag.gameKey" />
+            }
+            else
+            {
+                <input asp-for="GameKey" class="form-control" aria-describedby="gamekeyHelp" />
+            }
             <div id="gamekeyHelp" class="form-text">Unique identifier of the game, should be provided by the creator of this game.</div>
 
             <label asp-for=Username class="form-label">Username: </label>

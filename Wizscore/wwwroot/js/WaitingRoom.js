@@ -35,9 +35,11 @@
                 text: 'Join my wizscore game!',
                 url: shareUrl,
             }).then(() => console.log('Successful share'))
-              .catch((error) => console.log('Error sharing', error));
+                .catch((error) => console.log('Error sharing', error));
 
         });
+    } else {
+        shareButton.style.display = "none";
     }
 });
 

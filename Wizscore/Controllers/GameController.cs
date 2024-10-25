@@ -35,7 +35,7 @@ namespace Wizscore.Controllers
             try
             {
                 var gameResult = await _gameManager.CreateGameAsync(request.NumberOfPlayers, request.Username);
-                if(!gameResult.IsSuccess)
+                if (!gameResult.IsSuccess)
                 {
                     ModelState.AddModelError("Error", gameResult.Error.Message);
                     return View(nameof(Create));
@@ -75,7 +75,7 @@ namespace Wizscore.Controllers
             }
 
             //When a player is being removed from a game we need to remove is current cookie and redirect him to the home screen
-            if(!game.Players.Any(a => a.Username == username))
+            if (!game.Players.Any(a => a.Username == username))
             {
                 Response.Cookies.Delete(Constants.Cookies.GameKey);
                 Response.Cookies.Delete(Constants.Cookies.UserName);
@@ -88,14 +88,14 @@ namespace Wizscore.Controllers
             {
                 GameKey = gameKey,
                 ShareUrl = _webHostEnvironment.IsDevelopment()
-                    ? $"{nameof(Join)}?GameKey={gameKey}"
-                    : $"https://wizscore.io/Game/Join?GameKey={gameKey}",
+                    ? $"{nameof(JoinWithKey)}?GameKey={gameKey}"
+                    : $"https://wizscore.io/Game/JoinWithKey?GameKey={gameKey}",
                 NumberOfPlayer = game.NumberOfPlayers,
                 IsGameCreator = isGameCreator,
                 CurrentUserName = username,
                 Players = game.Players
-                .Select(s => new WaitingRoomPlayerViewModel() 
-                { 
+                .Select(s => new WaitingRoomPlayerViewModel()
+                {
                     Username = s.Username,
                     PlayerNumber = s.PlayerNumber
                 }).ToList()
@@ -105,9 +105,18 @@ namespace Wizscore.Controllers
             return View(nameof(WaitingRoom), vm);
         }
 
-
         public IActionResult Join() => View(nameof(Join));
-        
+
+        public IActionResult JoinWithKey(string gameKey)
+        {
+            if (string.IsNullOrWhiteSpace(gameKey))
+            {
+                return RedirectToAction(nameof(Join));
+            }
+            ViewBag.gameKey = gameKey;
+            return View(nameof(Join));
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> JoinSubmit([FromForm] JoinSubmitViewModel request)
@@ -261,20 +270,20 @@ namespace Wizscore.Controllers
 
 
             var vm = new BidWaitingRoomViewModel();
-           
+
             var roundNumberResult = await _gameManager.GetCurentRoundNumberAsync(gameKey);
-            if(!roundNumberResult.IsSuccess)
+            if (!roundNumberResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", roundNumberResult.Error.Message);
-                return View(nameof(BidWaitingRoom),vm);
+                return View(nameof(BidWaitingRoom), vm);
             }
             vm.RoundNumber = roundNumberResult.Value;
 
             var bidMessagesResult = await _gameManager.GetCurrentRoundBidMessagesAsync(gameKey);
-            if(!bidMessagesResult.IsSuccess) 
+            if (!bidMessagesResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", bidMessagesResult.Error.Message);
-                return View(nameof(BidWaitingRoom),vm);
+                return View(nameof(BidWaitingRoom), vm);
             }
             vm.BidMessages = bidMessagesResult.Value;
 
@@ -283,7 +292,7 @@ namespace Wizscore.Controllers
             if (!currentSuitResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", currentSuitResult.Error.Message);
-                return View(nameof(BidWaitingRoom),vm);
+                return View(nameof(BidWaitingRoom), vm);
             }
             vm.Suit = currentSuitResult.Value;
 
@@ -291,7 +300,7 @@ namespace Wizscore.Controllers
             if (!dealerPlayerUsernameResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", dealerPlayerUsernameResult.Error.Message);
-                return View(nameof(BidWaitingRoom),vm);
+                return View(nameof(BidWaitingRoom), vm);
             }
             vm.IsDealer = username == dealerPlayerUsernameResult.Value;
 
@@ -399,7 +408,7 @@ namespace Wizscore.Controllers
             }
 
             var submitBidResult = await _gameManager.SubmitBidResultAsync(gameKey, username, request.ActualValue);
-            if(!submitBidResult.IsSuccess)
+            if (!submitBidResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", submitBidResult.Error.Message);
                 return await BidResult();
@@ -407,7 +416,7 @@ namespace Wizscore.Controllers
 
             return RedirectToAction(nameof(Score));
         }
-        
+
 
         public async Task<IActionResult> Score()
         {
@@ -435,7 +444,7 @@ namespace Wizscore.Controllers
                 }
 
                 var scoreResult = await _gameManager.CaclulateScoresAsync(gameKey);
-                if(!scoreResult.IsSuccess)
+                if (!scoreResult.IsSuccess)
                 {
                     ModelState.AddModelError("Error", scoreResult.Error.Message);
                     return View(nameof(Score), vm);
@@ -465,7 +474,7 @@ namespace Wizscore.Controllers
                         Score = s.Score
                     }).ToList(),
                 };
-             
+
             }
             catch (Exception ex)
             {
@@ -490,7 +499,7 @@ namespace Wizscore.Controllers
             }
 
             var result = await _gameManager.StartNextRoundAsync(gameKey, username);
-            if(!result.IsSuccess)
+            if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
                 return await Score();
