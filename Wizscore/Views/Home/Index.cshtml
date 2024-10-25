@@ -1,8 +1,24 @@
-﻿<h1>Create a game or join one!</h1>
+﻿@model Wizscore.ViewModels.HomeViewModel
+<h1>Create a game or join one!</h1>
 <div class="row mt-4">
     <div class="d-grid gap-2 col-sm-12 mx-auto">
         <a asp-controller="Game" asp-action="Create" role="button" class="btn btn-outline-success">Create</a>
         <a asp-controller="Game" asp-action="Join" role="button" class="btn btn-outline-info">Join</a>
+        @if (Model.CanRejoin)
+        {
+            if (Model.HasGameStarted && Model.IsCurrentRoundFinished)
+            {
+                <a asp-controller="Game" asp-action="Score" role="button" class="btn btn-outline-info">Re-Join current game</a>
+            }
+            else if (Model.HasGameStarted)
+            {
+                <a asp-controller="Game" asp-action="Bid" role="button" class="btn btn-outline-info">Re-Join current game</a>
+            }
+            else
+            {
+                <a asp-controller="Game" asp-action="WaitingRoom" role="button" class="btn btn-outline-info">Re-Join current game</a>
+            }
+        }
     </div>
 </div>
 

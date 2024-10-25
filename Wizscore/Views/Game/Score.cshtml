@@ -32,7 +32,12 @@
     <div class="col-sm-12">
         @if(Model.IsNextDealer)
         {
+            <h5>You are the next dealer</h5>
             <a class="btn btn-lg btn-outline-success" style="width: 100%" asp-controller="Game" asp-action="StartNextRound">Start Next Round</a>
+        }
+        else
+        {
+            <h5 class="text-primary">Waiting for the dealer to start the next round</h5>
         }
     </div>
 </div>
@@ -66,7 +71,7 @@
                     {
                         <tr>
                             <td>@scoreRound.Username</td>
-                            <td>@scoreRound.BidValue / @scoreRound.ActualValue</td>
+                            <td>@scoreRound.BidValue / @(scoreRound.ActualValue.HasValue ? scoreRound.ActualValue.Value : "N/A")</td>
                             <td>@scoreRound.Score</td>
                         </tr>
                     }

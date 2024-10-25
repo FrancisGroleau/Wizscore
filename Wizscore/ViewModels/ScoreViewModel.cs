@@ -21,7 +21,7 @@
         public int RoundNumber { get; set; }
         public string Username { get; set; } = string.Empty;
         public int BidValue { get; set; }
-        public int ActualValue { get; set; }
+        public int? ActualValue { get; set; }
         public int Score { get; set; }
     }
 

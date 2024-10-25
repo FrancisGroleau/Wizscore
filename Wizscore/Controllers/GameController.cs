@@ -117,7 +117,6 @@ namespace Wizscore.Controllers
             return View(nameof(Join));
         }
 
-
         [HttpPost]
         public async Task<IActionResult> JoinSubmit([FromForm] JoinSubmitViewModel request)
         {
@@ -135,7 +134,6 @@ namespace Wizscore.Controllers
 
         public async Task<IActionResult> RemovePlayer(string username)
         {
-            //if we are already in a game we can't join a new one
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             var currentUsername = Request.Cookies[Constants.Cookies.UserName];
             if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(currentUsername))
@@ -155,7 +153,6 @@ namespace Wizscore.Controllers
 
         public async Task<IActionResult> MovePlayerUp(string username)
         {
-            //if we are already in a game we can't join a new one
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             var currentUsername = Request.Cookies[Constants.Cookies.UserName];
             if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(currentUsername))
@@ -175,7 +172,6 @@ namespace Wizscore.Controllers
 
         public async Task<IActionResult> MovePlayerDown(string username)
         {
-            //if we are already in a game we can't join a new one
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
             var currentUsername = Request.Cookies[Constants.Cookies.UserName];
             if (string.IsNullOrEmpty(gameKey) || string.IsNullOrEmpty(currentUsername))
@@ -221,31 +217,41 @@ namespace Wizscore.Controllers
             }
 
             var game = await _gameManager.GetGameByKeyAsync(gameKey);
-            var dealerUserNameResult = await _gameManager.GetCurrentDealerUsernameAsync(gameKey);
+            if(game == null)
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            if(!game.HasStarted)
+            {
+                return RedirectToAction(nameof(WaitingRoom));
+            }
+
+            var dealerUserNameResult = _gameManager.GetCurrentDealerUsername(game);
             var isDealer = dealerUserNameResult.IsSuccess
                     ? dealerUserNameResult.Value == username
                     : false;
 
             ViewBag.IsDealer = isDealer;
 
-            ViewBag.RoundNumber = game?.Rounds
+            ViewBag.RoundNumber = game.Rounds
                 ?.OrderByDescending(x => x.RoundNumber)
                 ?.FirstOrDefault()
                 ?.RoundNumber ?? 1;
 
-            var currentsuit = await _gameManager.GetCurrentSuitAsync(gameKey);
+            var currentsuit = _gameManager.GetCurrentSuit(game);
 
             ViewBag.Suit = currentsuit.IsSuccess
                 ? currentsuit.Value
                 : Models.SuitEnum.None;
 
-            var isCurrentRoundFinishedResult = await _gameManager.IsCurrentRoundFinishedAsync(gameKey);
+            var isCurrentRoundFinishedResult = _gameManager.IsAllBidPlacedForCurrentRound(game);
             if (isCurrentRoundFinishedResult.IsSuccess && isCurrentRoundFinishedResult.Value && isDealer)
             {
                 return RedirectToAction(nameof(BidWaitingRoom));
             }
 
-            var nextBiderUsernameResult = await _gameManager.GetNextPlayerUsernameToBidAsync(gameKey);
+            var nextBiderUsernameResult = _gameManager.GetNextPlayerUsernameToBid(game);
             if (nextBiderUsernameResult.IsSuccess && username != nextBiderUsernameResult.Value)
             {
                 return RedirectToAction(nameof(BidWaitingRoom));
@@ -268,10 +274,16 @@ namespace Wizscore.Controllers
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
 
+            var game = await _gameManager.GetGameByKeyAsync(gameKey);
+            if(game == null)
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
 
             var vm = new BidWaitingRoomViewModel();
 
-            var roundNumberResult = await _gameManager.GetCurentRoundNumberAsync(gameKey);
+            var roundNumberResult = _gameManager.GetCurentRoundNumber(game);
             if (!roundNumberResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", roundNumberResult.Error.Message);
@@ -279,7 +291,7 @@ namespace Wizscore.Controllers
             }
             vm.RoundNumber = roundNumberResult.Value;
 
-            var bidMessagesResult = await _gameManager.GetCurrentRoundBidMessagesAsync(gameKey);
+            var bidMessagesResult = _gameManager.GetCurrentRoundBidMessages(game);
             if (!bidMessagesResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", bidMessagesResult.Error.Message);
@@ -288,7 +300,7 @@ namespace Wizscore.Controllers
             vm.BidMessages = bidMessagesResult.Value;
 
 
-            var currentSuitResult = await _gameManager.GetCurrentSuitAsync(gameKey);
+            var currentSuitResult = _gameManager.GetCurrentSuit(game);
             if (!currentSuitResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", currentSuitResult.Error.Message);
@@ -296,7 +308,7 @@ namespace Wizscore.Controllers
             }
             vm.Suit = currentSuitResult.Value;
 
-            var dealerPlayerUsernameResult = await _gameManager.GetCurrentDealerUsernameAsync(gameKey);
+            var dealerPlayerUsernameResult = _gameManager.GetCurrentDealerUsername(game);
             if (!dealerPlayerUsernameResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", dealerPlayerUsernameResult.Error.Message);
@@ -304,7 +316,7 @@ namespace Wizscore.Controllers
             }
             vm.IsDealer = username == dealerPlayerUsernameResult.Value;
 
-            var isCurrentRoundFinishedResult = await _gameManager.IsCurrentRoundFinishedAsync(gameKey);
+            var isCurrentRoundFinishedResult = _gameManager.IsAllBidPlacedForCurrentRound(game);
             if (!isCurrentRoundFinishedResult.IsSuccess)
             {
                 ModelState.AddModelError("Error", isCurrentRoundFinishedResult.Error.Message);
@@ -450,7 +462,7 @@ namespace Wizscore.Controllers
                     return View(nameof(Score), vm);
                 }
 
-                var nextDealerUserName = await _gameManager.GetNextDealerUsernameAsync(gameKey);
+                var nextDealerUserName = _gameManager.GetNextDealerUsername(game);
                 if (!nextDealerUserName.IsSuccess)
                 {
                     ModelState.AddModelError("Error", scoreResult.Error.Message);
