@@ -3,14 +3,21 @@
     Layout = "_GameLayout";
     ViewData["Heading"] = "Lobby";
 }
-<div class="row">
-    <div class="col-sm-6">
-        Game Key: @Model.GameKey
+<div class="row align-items-center">
+    <div class="col col-sm-6">
+        <p class="fs-5">
+            Game Key: @Model.GameKey
+        </p>
     </div>
-    <div class="col-sm-6">
-        <span class="m2-2 btn btn-outline-info" id="copyGameKeyToKeyboard" data-game-key="@Model.GameKey">Copy to keyboard</span>
+    <div class="col col-sm-3">
+        <span class="m2-2 btn btn-lg btn-outline-info" style="width: 100%" id="copyGameKeyToKeyboard" data-game-key="@Model.GameKey">Copy <i class="bi bi-copy"></i></span>
     </div>
-    <div class="col-sm-12 mt-3">
+    <div class="col col-sm-3">
+        <button type="button" class="btn btn-lg btn-outline-primary" style="width: 100%" id="share" data-share-url="@Model.ShareUrl">Share <i class="bi bi-share"></i></button>
+    </div>
+</div>
+<div class="row mt-3">
+    <div class="col-sm-12">
         <table class="table" id="waitingRoomList">
             <thead>
             <th scope="col">
@@ -30,9 +37,9 @@
                 @for (int i = 0; i < Model.NumberOfPlayer; i++)
                 {
                     var isPlayerRow = Model.Players.Any(a => a.PlayerNumber == i + 1);
-                    var value = isPlayerRow 
-                        ? Model.Players.First(f => f.PlayerNumber == i + 1).Username
-                        : $"Waiting for player {i + 1} to join...";
+                    var value = isPlayerRow
+                    ? Model.Players.First(f => f.PlayerNumber == i + 1).Username
+                    : $"Waiting for player {i + 1} to join...";
                     <tr>
                         <td>@(i + 1)</td>
                         <td>@value</td>
@@ -63,16 +70,17 @@
                 }
             </tbody>
         </table>
+
+        @if (Model.IsGameCreator)
+        {
+            <a asp-controller="Game" asp-action="Start" asp-route-gamekey="@Model.GameKey" style="width: 100%" class="btn btn-lg btn-outline-success mt-3">Start Game</a>
+        }
     </div>
-    @if (Model.IsGameCreator)
-    {
-        <a asp-controller="Game" asp-action="Start" asp-route-gamekey="@Model.GameKey" class="btn btn-outline-success">Start Game</a>
-    }
     <a id="goToBid" style="display: none" asp-controller="Game" asp-action="Bid"></a>
 </div>
 
 @section Scripts
-{
+        {
     <script src="~/js/WaitingRoomHub.js" type="text/javascript"></script>
     <script src="~/js/WaitingRoom.js" type="text/javascript"></script>
 }

@@ -3,32 +3,43 @@
     Layout = "_GameLayout";
     ViewData["Heading"] = $"Make a bid for round: {ViewBag.RoundNumber}";
 }
-<div class="row">
+<div class="row mt-3">
     <div class="sm-col-12">
+        @if (ViewBag.IsDealer)
+        {
+            <h4 class="mb-2">Please select the suit for this round if needed</h4>
+        }
+
+        <div class="suit-container mb-2">
+            <button type="button" class="btn btn-lg @(ViewBag.Suit == SuitEnum.Spade ? "btn-success": "btn-outline-info") suit" data-suit="Spade" data-active="@(ViewBag.Suit == SuitEnum.Spade ? "true" : "false")" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-spade"></i></button>
+            <button type="button" class="btn btn-lg @(ViewBag.Suit == SuitEnum.Heart ? "btn-success": "btn-outline-info") suit" data-suit="Heart" data-active="@(ViewBag.Suit == SuitEnum.Heart ? "true" : "false")" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-heart"></i></button>
+            <button type="button" class="btn btn-lg @(ViewBag.Suit == SuitEnum.Club ? "btn-success": "btn-outline-info") suit" data-suit="Club" data-active="@(ViewBag.Suit == SuitEnum.Club ? "true" : "false")" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-club"></i></button>
+            <button type="button" class="btn btn-lg @(ViewBag.Suit == SuitEnum.Diamond ? "btn-success": "btn-outline-info") suit" data-suit="Diamond" data-active="@(ViewBag.Suit == SuitEnum.Diamond ? "true" : "false")" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-diamond"></i></button>
+            <button type="button" class="btn btn-lg @(ViewBag.Suit == SuitEnum.None ? "btn-success": "btn-outline-info") suit" data-suit="None" data-active="@(ViewBag.Suit == SuitEnum.None ? "true" : "false")" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-dash-circle"></i></button>
+        </div>
+
+        <span id="round" data-round="@ViewBag.RoundNumber" style="display: none"></span>
+       
+
         <form asp-action="BidSubmit" asp-controller="Game" method="post">
+            <input id="bid" type="hidden" asp-for="Bid" style="display: none" />
 
             @if (ViewBag.IsDealer)
             {
-                <h4 class="mb-2">You are the dealer, please select the suit for this round if needed</h4>
+                <input id="isDealer" type="hidden" value="true" />
             }
 
-            <div class="suit-container mb-2">
-                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Spade ? "btn-success": "btn-outline-info") suit" data-suit="Spade" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-spade"></i></button>
-                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Heart ? "btn-success": "btn-outline-info") suit" data-suit="Heart" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-heart"></i></button>
-                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Club ? "btn-success": "btn-outline-info") suit" data-suit="Club" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-club"></i></button>
-                <button type="button" class="btn @(ViewBag.Suit == SuitEnum.Diamond ? "btn-success": "btn-outline-info") suit" data-suit="Diamond" data-active="false" @(!ViewBag.IsDealer ? "disabled" : string.Empty)><i class="bi bi-suit-diamond"></i></button>
+            <div class="plus-minus-button-container">
+                <button id="plus" type="button" class="btn btn-lg btn-outline-primary plus-button">
+                    <i class="bi bi-plus-square"></i>
+                </button>
+                <span id="bidDisplay" class="bid">0</span>
+                <button id="minus" type="button" class="btn btn-lg btn-outline-primary minus-button">
+                    <i class="bi bi-dash-square"></i>
+                </button>
             </div>
 
-            @if(ViewBag.IsDealer)
-            {
-                <input type="hidden" id="isDealer" value="true" />
-            }
-
-            <label asp-for="Bid" class="form-label">Bid: </label>
-            <input asp-for="Bid" class="form-control" />
-            
-
-            <button type="submit" class="btn btn-outline-success mt-5 align-self-end">Submit</button>
+            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5 align-self-end">Submit</button>
         </form>
     </div>
 </div>

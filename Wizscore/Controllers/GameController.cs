@@ -87,6 +87,9 @@ namespace Wizscore.Controllers
             var vm = new WaitingRoomViewModel()
             {
                 GameKey = gameKey,
+                ShareUrl = _webHostEnvironment.IsDevelopment()
+                    ? $"{nameof(Join)}?GameKey={gameKey}"
+                    : $"https://wizscore.io/Game/Join?GameKey={gameKey}",
                 NumberOfPlayer = game.NumberOfPlayers,
                 IsGameCreator = isGameCreator,
                 CurrentUserName = username,

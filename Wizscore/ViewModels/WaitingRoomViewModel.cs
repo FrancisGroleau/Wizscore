@@ -5,6 +5,7 @@ namespace Wizscore.ViewModels
     public class WaitingRoomViewModel
     {
         public string GameKey { get; set; } = string.Empty;
+        public string ShareUrl { get; set; }
         public int NumberOfPlayer { get; set; }
         public bool IsGameCreator { get; set; }
         public string CurrentUserName { get; set; }

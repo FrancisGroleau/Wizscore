@@ -27,13 +27,13 @@ connection.on("SuitChangedAsync", function (suit) {
 
     let previouslySelectedSuitButton = document.querySelector('.suit[data-active="true"]');
     if (previouslySelectedSuitButton) {
-        previouslySelectedSuitButton.className = 'btn btn-outline-info'
+        previouslySelectedSuitButton.className = 'btn btn-lg btn-outline-info'
         previouslySelectedSuitButton.dataset.active = 'false';
     }
 
     let suitButton = document.querySelector(`button[data-suit="${suit}"]`)
     if (suitButton) {
-        suitButton.className = 'btn btn-success suit';
+        suitButton.className = 'btn btn-lg btn-success suit';
         suitButton.dataset.active = 'true';
     }
 

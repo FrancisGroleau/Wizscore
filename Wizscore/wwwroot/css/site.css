@@ -20,3 +20,37 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.suit-container{
+    display: flex;
+    justify-content: space-between;
+}
+
+.suit-container > button {
+    width: 18%;
+    aspect-ratio: 1 / 1;
+    font-size: 30px;
+}
+
+.plus-minus-button-container {
+    margin-top: 50px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.plus-button{
+    width: 25%;
+    aspect-ratio: 1 / 1;
+    font-size: 40px;
+}
+
+.minus-button {
+    width: 25%;
+    aspect-ratio: 1 / 1;
+    font-size: 40px;
+}
+
+.bid{
+    font-size: 80px;
+}

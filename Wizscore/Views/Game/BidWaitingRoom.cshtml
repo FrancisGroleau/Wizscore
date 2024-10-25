@@ -6,10 +6,11 @@
 <div class="row">
     <div class="col-sm-12">
         <div class="suit-container mb-2">
-            <button type="button" class="btn @(Model.Suit == SuitEnum.Spade ? "btn-success": "btn-outline-info") suit" data-suit="Spade" data-active="@(Model.Suit == SuitEnum.Spade ? "true" : "false")" disabled><i class="bi bi-suit-spade"></i></button>
-            <button type="button" class="btn @(Model.Suit == SuitEnum.Heart ? "btn-success": "btn-outline-info") suit" data-suit="Heart" data-active="@(Model.Suit == SuitEnum.Heart ? "true" : "false")" disabled><i class="bi bi-suit-heart"></i></button>
-            <button type="button" class="btn @(Model.Suit == SuitEnum.Club ? "btn-success": "btn-outline-info") suit" data-suit="Club" data-active="@(Model.Suit == SuitEnum.Club ? "true" : "false")" disabled><i class="bi bi-suit-club"></i></button>
-            <button type="button" class="btn @(Model.Suit == SuitEnum.Diamond ? "btn-success": "btn-outline-info") suit" data-suit="Diamond" data-active="@(Model.Suit == SuitEnum.Diamond ? "true" : "false")" disabled><i class="bi bi-suit-diamond"></i></button>
+            <button type="button" class="btn btn-lg @(Model.Suit == SuitEnum.Spade ? "btn-success": "btn-outline-info") suit" data-suit="Spade" data-active="@(Model.Suit == SuitEnum.Spade ? "true" : "false")" disabled><i class="bi bi-suit-spade"></i></button>
+            <button type="button" class="btn btn-lg @(Model.Suit == SuitEnum.Heart ? "btn-success": "btn-outline-info") suit" data-suit="Heart" data-active="@(Model.Suit == SuitEnum.Heart ? "true" : "false")" disabled><i class="bi bi-suit-heart"></i></button>
+            <button type="button" class="btn btn-lg @(Model.Suit == SuitEnum.Club ? "btn-success": "btn-outline-info") suit" data-suit="Club" data-active="@(Model.Suit == SuitEnum.Club ? "true" : "false")" disabled><i class="bi bi-suit-club"></i></button>
+            <button type="button" class="btn btn-lg @(Model.Suit == SuitEnum.Diamond ? "btn-success": "btn-outline-info") suit" data-suit="Diamond" data-active="@(Model.Suit == SuitEnum.Diamond ? "true" : "false")" disabled><i class="bi bi-suit-diamond"></i></button>
+            <button type="button" class="btn btn-lg @(Model.Suit == SuitEnum.None ? "btn-success": "btn-outline-info") suit" data-suit="None" data-active="@(Model.Suit == SuitEnum.None ? "true" : "false")" disabled><i class="bi bi-dash-circle"></i></button>
         </div>
     </div>
 </div>
@@ -52,7 +53,7 @@
 {
     <div class="row mt-3">
         <div class="col-sm-12 justify-content-center align-items-center">
-            <a class="btn btn-outline-success" asp-controller="Game" asp-action="FinishRound">Finish Round</a>
+            <a class="btn btn-lg btn-outline-success" style="width: 100%" asp-controller="Game" asp-action="FinishRound">Finish Round</a>
         </div>
     </div>
 }
