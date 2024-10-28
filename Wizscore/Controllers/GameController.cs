@@ -455,7 +455,7 @@ namespace Wizscore.Controllers
                     return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
                 }
 
-                var scoreResult = await _gameManager.CaclulateScoresAsync(gameKey);
+                var scoreResult = _gameManager.CaclulateScores(game);
                 if (!scoreResult.IsSuccess)
                 {
                     ModelState.AddModelError("Error", scoreResult.Error.Message);
@@ -496,6 +496,66 @@ namespace Wizscore.Controllers
             return View(nameof(Score), vm);
         }
 
+        public async Task<IActionResult> GameFinished()
+        {
+            var vm = new ScoreViewModel();
+
+            try
+            {
+                //Make sure we only can see score of our current game
+                var gameKey = Request.Cookies[Constants.Cookies.GameKey];
+                if (string.IsNullOrEmpty(gameKey))
+                {
+                    return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+                }
+
+                var username = Request.Cookies[Constants.Cookies.UserName];
+                if (string.IsNullOrEmpty(username))
+                {
+                    return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+                }
+
+                var game = await _gameManager.GetGameByKeyAsync(gameKey);
+                if (game == null)
+                {
+                    return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+                }
+
+                var scoreResult = _gameManager.CaclulateScores(game);
+                if (!scoreResult.IsSuccess)
+                {
+                    ModelState.AddModelError("Error", scoreResult.Error.Message);
+                    return View(nameof(Score), vm);
+                }
+
+                vm = new ScoreViewModel()
+                {
+                    IsNextDealer = false,
+                    IsFinished = true,
+                    PlayerScores = scoreResult.Value.PlayerScores.Select(s => new ScorePlayerViewModel
+                    {
+                        Username = s.Username,
+                        Score = s.Score
+                    }).ToList(),
+                    RoundsScores = scoreResult.Value.RoundsScores.Select(s => new ScoreRoundViewModel
+                    {
+                        Username = s.Username,
+                        BidValue = s.BidValue,
+                        ActualValue = s.ActualValue,
+                        RoundNumber = s.RoundNumber,
+                        Score = s.Score
+                    }).ToList(),
+                };
+
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("Error", ex.Message);
+            }
+
+            return View(nameof(Score), vm);
+        }
+
         public async Task<IActionResult> StartNextRound()
         {
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
@@ -509,8 +569,19 @@ namespace Wizscore.Controllers
             {
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
+            var game = await _gameManager.GetGameByKeyAsync(gameKey);
+            if (game == null)
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
 
-            var result = await _gameManager.StartNextRoundAsync(gameKey, username);
+            var isLastRoundResult = _gameManager.IsLastRound(game);
+            if(isLastRoundResult.IsSuccess && isLastRoundResult.Value)
+            {
+                return RedirectToAction(nameof(GameFinished));
+            }
+
+            var result = await _gameManager.StartNextRoundAsync(game, username);
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);

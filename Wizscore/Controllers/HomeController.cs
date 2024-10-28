@@ -33,8 +33,11 @@ namespace Wizscore.Controllers
                     }
                     if(game != null && game.HasStarted)
                     {
-                        var isCurrentRoundFinishedResult = await _gameManager.IsCurrentRoundFinishedAsync(gameKey);
+                        var isCurrentRoundFinishedResult = _gameManager.IsCurrentRoundFinished(game);
+                        var isLastRoundResult = _gameManager.IsLastRound(game);
                         vm.IsCurrentRoundFinished = isCurrentRoundFinishedResult.IsSuccess && isCurrentRoundFinishedResult.Value;
+                        vm.IsGameFinished = (isCurrentRoundFinishedResult.IsSuccess && isCurrentRoundFinishedResult.Value) &&
+                            (isLastRoundResult.IsSuccess && isLastRoundResult.Value);
                     }
                     vm.CanRejoin = true;
                 }

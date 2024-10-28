@@ -6,7 +6,7 @@
         <a asp-controller="Game" asp-action="Join" role="button" class="btn btn-outline-info">Join</a>
         @if (Model.CanRejoin)
         {
-            if (Model.HasGameStarted && Model.IsCurrentRoundFinished)
+            if (Model.HasGameStarted && (Model.IsCurrentRoundFinished || Model.IsGameFinished))
             {
                 <a asp-controller="Game" asp-action="Score" role="button" class="btn btn-outline-info">Re-Join current game</a>
             }

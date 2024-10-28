@@ -39,10 +39,11 @@ namespace Wizscore.Managers
         Result<SuitEnum> GetCurrentSuit(Game game);
         Result<bool> IsAllBidPlacedForCurrentRound(Game game);
         Task<Result<bool>> FinishRoundAsync(string gameKey, string username);
-        Task<Result<Score>> CaclulateScoresAsync(string gameKey);
+        Result<Score> CaclulateScores(Game game);
         Result<string> GetNextDealerUsername(Game game);
-        Task<Result<Game>> StartNextRoundAsync(string gameKey, string username);
-        Task<Result<bool>> IsCurrentRoundFinishedAsync(string gameKey);
+        Task<Result<Game>> StartNextRoundAsync(Game game, string username);
+        Result<bool> IsCurrentRoundFinished(Game game);
+        Result<bool> IsLastRound(Game game);
     }
 
     public class GameManager : IGameManager
@@ -613,14 +614,8 @@ namespace Wizscore.Managers
             return Result<bool>.Success(true);
         }
 
-        public async Task<Result<Score>> CaclulateScoresAsync(string gameKey)
+        public Result<Score> CaclulateScores(Game game)
         {
-            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
-            if (game == null)
-            {
-                return Result<Score>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
-            }
-
             var score = new Score();
             score.RoundsScores = game.Rounds.SelectMany(s => s.Bids.Select(b => new RoundScore()
             {
@@ -692,14 +687,8 @@ namespace Wizscore.Managers
             return Result<string>.Success(nextPlayer.Username);
         }
 
-        public async Task<Result<Game>> StartNextRoundAsync(string gameKey, string username)
+        public async Task<Result<Game>> StartNextRoundAsync(Game game, string username)
         {
-            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
-            if (game == null)
-            {
-                return Result<Game>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
-            }
-
             var nextRoundDealerResult = GetNextDealerUsername(game);
             if(!nextRoundDealerResult.IsSuccess)
             {
@@ -711,30 +700,48 @@ namespace Wizscore.Managers
                 return Result<Game>.Failure(Error.FromError($"You are not the next dealer", "Game.Players.NotNextDealer"));
             }
 
+            var isRoundFinished = IsCurrentRoundFinished(game);
+            if (!isRoundFinished.IsSuccess)
+            {
+                return Result<Game>.Failure(isRoundFinished.Error);
+            }
+            if(isRoundFinished.IsSuccess && !isRoundFinished.Value)
+            {
+                return Result<Game>.Failure(Error.FromError("Not all players have submitted their actual value for the round", "Game.Rounds.NotFinished"));
+            }
 
             var latestRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
             var nextDealerPlayer = game.Players.First(f => f.Username == username);
 
             var nextRound = await _roundRepository.CreateRoundAsync(game.Id, SuitEnum.None, nextDealerPlayer.Id, latestRound.RoundNumber + 1);
 
-            await _scoreHubContext.Clients.Group(gameKey).NextRoundStartedAsync();
+            await _scoreHubContext.Clients.Group(game.Key).NextRoundStartedAsync();
 
-            var updatedGame = await _gameRepository.GetGameByKeyAsync(gameKey);
+            var updatedGame = await _gameRepository.GetGameByKeyAsync(game.Key);
 
             return Result<Game>.Success(updatedGame!);
         }
 
-        public async Task<Result<bool>> IsCurrentRoundFinishedAsync(string gameKey)
+        public Result<bool> IsCurrentRoundFinished(Game game)
         {
-            var game = await _gameRepository.GetGameByKeyAsync(gameKey);
-            if (game == null)
-            {
-                return Result<bool>.Failure(Error.FromError($"No Game found with Game Key: {gameKey}", "Game.NotExisting"));
-            }
-
             var lastRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
             var isLastRoundFinished = lastRound.Bids.Any() && lastRound.Bids.All(a => a.ActualValue.HasValue);
             return Result<bool>.Success(isLastRoundFinished);
+        }
+
+        public Result<bool> IsLastRound(Game game)
+        {
+            if (!game.HasStarted)
+            {
+                return Result<bool>.Success(false);
+            }
+
+            var isLastRound = game.NumberOfPlayers == 6 && game.Rounds.Count == 10 ||
+                game.NumberOfPlayers == 5 && game.Rounds.Count == 12 ||
+                game.NumberOfPlayers == 4 && game.Rounds.Count == 15 ||
+                game.NumberOfPlayers <= 3 && game.Rounds.Count == 20;
+
+            return Result<bool>.Success(isLastRound);   
         }
     }
 }

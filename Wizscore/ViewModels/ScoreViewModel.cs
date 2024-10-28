@@ -3,6 +3,7 @@
     public class ScoreViewModel
     {
         public bool IsNextDealer { get; set; }
+        public bool IsFinished { get; set; }
 
         public List<ScoreRoundViewModel> RoundsScores { get; set; } = new List<ScoreRoundViewModel>();
 
