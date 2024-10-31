@@ -15,8 +15,8 @@ namespace Wizscore.Managers
     public interface IGameManager
     {
         Task<Game?> GetGameByKeyAsync(string gameKey);
-
         Task<Result<Game>> CreateGameAsync(int numberOfPlayers, string username);
+        Task<Result<Game>> StartGameAsync(string gameKey, string username);
 
 
         Task<bool> IsPlayerWithUsernameIsCreatorAsync(Game game, string username);
@@ -26,22 +26,29 @@ namespace Wizscore.Managers
         Task<Result<Game>> MovePlayerUpAsync(string gameKey, string username, string currentUsername);
         Task<Result<Game>> MovePlayerDownAsync(string gameKey, string username, string currentUsername);
 
-        Task<Result<Game>> StartGameAsync(string gameKey, string username);
+        
 
         Result<string> GetCurrentDealerUsername(Game game);
+        Result<string> GetNextDealerUsername(Game game);
         Result<string> GetNextPlayerUsernameToBid(Game game);
+
         Result<int> GetCurentRoundNumber(Game game);
         Task<Result<int>> GetCurentRoundNumberAsync(string gameKey);
+
         Task<Result<Game>> SubmitBidAsync(string gameKey, string username, int bidValue);
         Task<Result<Game>> SubmitBidResultAsync(string gameKey, string username, int actualValue);
+
         Result<List<string>> GetCurrentRoundBidMessages(Game game);
+
         Task<Result<Game>> ChangeCurrentSuitAsync(string gameKey, string username, SuitEnum suitValue);
         Result<SuitEnum> GetCurrentSuit(Game game);
-        Result<bool> IsAllBidPlacedForCurrentRound(Game game);
+
         Task<Result<bool>> FinishRoundAsync(string gameKey, string username);
-        Result<Score> CaclulateScores(Game game);
-        Result<string> GetNextDealerUsername(Game game);
         Task<Result<Game>> StartNextRoundAsync(Game game, string username);
+
+        Result<Score> CaclulateScores(Game game);
+
+        Result<bool> IsAllBidPlacedForCurrentRound(Game game);
         Result<bool> IsCurrentRoundFinished(Game game);
         Result<bool> IsLastRound(Game game);
     }
@@ -489,6 +496,11 @@ namespace Wizscore.Managers
             if (playerBid == null)
             {
                 return Result<Game>.Failure(Error.FromError($"Player did not bid for this round", "Game.Players.NotBid"));
+            }
+
+            if(actualValue > latestRound.RoundNumber)
+            {
+                return Result<Game>.Failure(Error.FromError($"Cannot get a actual result higher than current round number", "Game.Rounds.ActualValueIncorrect"));
             }
 
             await _bidRepository.UpdateBidActualValueAsync(playerBid.Id, actualValue);

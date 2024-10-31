@@ -12,5 +12,6 @@ namespace Wizscore.ViewModels
 
         public bool IsDealer { get; set; }
         public bool IsRoundFinished { get; set; }
+        public string NextBiderUsername { get; set; } = string.Empty;
     }
 }

@@ -8,7 +8,13 @@ connection.start().then(function () {
 
 
 connection.on("BidResultSubmittedAsync", function () {
-    window.location.reload();
+    let goToScoreAnchor = document.getElementById("goToScore");
+    if (goToScoreAnchor) {
+        let url = goToScoreAnchor.href;
+        if (url) {
+            window.location.replace(url);
+        }
+    }
 });
 
 connection.on("NextRoundStartedAsync", function () {

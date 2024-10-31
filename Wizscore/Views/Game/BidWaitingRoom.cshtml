@@ -18,30 +18,27 @@
     <div class="col-sm-12">
         <table class="table table-borderless">
             <tbody>
-                @if (!Model.BidMessages.Any())
+                @foreach (var message in Model.BidMessages)
                 {
                     <tr>
-                        <td>
-                            <p class="text-primary">Waiting for first player to bid </p>
+                        <td class="fs-4">
+                            @message
                         </td>
                     </tr>
-                }
-                else
-                {
-                    @foreach (var message in Model.BidMessages)
-                    {
-                        <tr>
-                            <td class="fs-4">
-                                @message
-                             </td>
-                        </tr>
-                    }
                 }
             </tbody>
         </table>
     </div>
 </div>
-@if(!Model.IsDealer && Model.IsRoundFinished)
+@if (!Model.IsRoundFinished && !string.IsNullOrEmpty(Model.NextBiderUsername))
+{
+    <div class="row mt-3">
+        <div class="col-sm-12">
+            <h5 class="text-primary">Waiting for @Model.NextBiderUsername to bid.</h5>
+        </div>
+    </div>
+}
+@if (!Model.IsDealer && Model.IsRoundFinished)
 {
     <div class="row mt-3">
         <div class="col-sm-12">

@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Wizscore.Attributes;
 using Wizscore.Configuration;
 using Wizscore.Managers;
 using Wizscore.ViewModels;
@@ -227,6 +228,7 @@ namespace Wizscore.Controllers
                 return RedirectToAction(nameof(WaitingRoom));
             }
 
+
             var dealerUserNameResult = _gameManager.GetCurrentDealerUsername(game);
             var isDealer = dealerUserNameResult.IsSuccess
                     ? dealerUserNameResult.Value == username
@@ -245,6 +247,8 @@ namespace Wizscore.Controllers
                 ? currentsuit.Value
                 : Models.SuitEnum.None;
 
+
+
             var isCurrentRoundFinishedResult = _gameManager.IsAllBidPlacedForCurrentRound(game);
             if (isCurrentRoundFinishedResult.IsSuccess && isCurrentRoundFinishedResult.Value && isDealer)
             {
@@ -256,6 +260,8 @@ namespace Wizscore.Controllers
             {
                 return RedirectToAction(nameof(BidWaitingRoom));
             }
+
+         
 
             return View(nameof(Bid));
         }
@@ -324,6 +330,14 @@ namespace Wizscore.Controllers
             }
             vm.IsRoundFinished = isCurrentRoundFinishedResult.Value;
 
+
+            var nextBiderUsernameResult = _gameManager.GetNextPlayerUsernameToBid(game);
+            if(!nextBiderUsernameResult.IsSuccess)
+            {
+                ModelState.AddModelError("Error", nextBiderUsernameResult.Error.Message);
+                return View(nameof(BidWaitingRoom), vm);
+            }
+            vm.NextBiderUsername = nextBiderUsernameResult.Value;
 
             return View(nameof(BidWaitingRoom), vm);
         }
@@ -429,7 +443,7 @@ namespace Wizscore.Controllers
             return RedirectToAction(nameof(Score));
         }
 
-
+        [ImportModelStateFromTempData]
         public async Task<IActionResult> Score()
         {
             var vm = new ScoreViewModel();
@@ -556,6 +570,7 @@ namespace Wizscore.Controllers
             return View(nameof(Score), vm);
         }
 
+        [ExportModelStateToTempData]
         public async Task<IActionResult> StartNextRound()
         {
             var gameKey = Request.Cookies[Constants.Cookies.GameKey];
@@ -585,7 +600,7 @@ namespace Wizscore.Controllers
             if (!result.IsSuccess)
             {
                 ModelState.AddModelError("Error", result.Error.Message);
-                return await Score();
+                return RedirectToAction(nameof(Score));
             }
 
             return RedirectToAction(nameof(Bid));
