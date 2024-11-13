@@ -13,7 +13,9 @@ builder.Services.Configure<Settings>(builder.Configuration.GetSection("Settings"
 builder.SetupPersistence();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix);
+
 builder.Services.AddSignalR();
 
 
@@ -24,6 +26,7 @@ builder.Services.AddTransient<IPlayerRepository, PlayerRepository>();
 builder.Services.AddTransient<IRoundRepository, RoundRepository>(); 
 builder.Services.AddTransient<IBidRepository, BidRepository>();
 
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 var app = builder.Build();
 
