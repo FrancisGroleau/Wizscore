@@ -1,13 +1,15 @@
-﻿@model Wizscore.ViewModels.JoinSubmitViewModel
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer localizer
+@model Wizscore.ViewModels.JoinSubmitViewModel
 @{
     Layout = "_GameLayout";
-    ViewData["Heading"] = "Join a game!";
+    ViewData["Heading"] = localizer[Generated.ViewsGameJoinResx.Title];
 }
 <div class="row">
     <div class="col-sm-12">
         <form asp-action="JoinSubmit" asp-controller="Game" method="post">
 
-            <label asp-for=GameKey class="form-label">Game Key: </label>
+            <label asp-for=GameKey class="form-label">@localizer[Generated.ViewsGameJoinResx.GameKey]</label>
             @if (!string.IsNullOrEmpty(ViewBag.gameKey))
             {
                 <input asp-for="GameKey" class="form-control" aria-describedby="gamekeyHelp" value="@ViewBag.gameKey" />
@@ -16,13 +18,13 @@
             {
                 <input asp-for="GameKey" class="form-control" aria-describedby="gamekeyHelp" />
             }
-            <div id="gamekeyHelp" class="form-text">Unique identifier of the game, should be provided by the creator of this game.</div>
+            <div id="gamekeyHelp" class="form-text">@localizer[Generated.ViewsGameJoinResx.GameKeyHelpInfo]</div>
 
-            <label asp-for=Username class="form-label">Username: </label>
+            <label asp-for=Username class="form-label">@localizer[Generated.ViewsGameJoinResx.Username]</label>
             <input asp-for="Username" class="form-control" aria-describedby="usernameHelp" />
-            <div id="usernameHelp" class="form-text">Enter your username for this game</div>
+            <div id="usernameHelp" class="form-text">@localizer[Generated.ViewsGameJoinResx.UsernameHelpInfo]</div>
 
-            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5">Join</button>
+            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5">@localizer[Generated.ViewsGameJoinResx.Join]</button>
         </form>
     </div>
 </div>

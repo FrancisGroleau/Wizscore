@@ -1,7 +1,9 @@
-﻿@model Wizscore.ViewModels.BidWaitingRoomViewModel
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer localizer
+@model Wizscore.ViewModels.BidWaitingRoomViewModel
 @{
     Layout = "_GameLayout";
-    ViewData["Heading"] = $"Round: {Model.RoundNumber}";
+    ViewData["Heading"] = localizer[Generated.ViewsGameBidWaitingRoomResx.Round, Model.RoundNumber];
 }
 <div class="row">
     <div class="col-sm-12">
@@ -34,7 +36,7 @@
 {
     <div class="row mt-3">
         <div class="col-sm-12">
-            <h5 class="text-primary">Waiting for @Model.NextBiderUsername to bid.</h5>
+            <h5 class="text-primary">@localizer[Generated.ViewsGameBidWaitingRoomResx.WaitingForPlayerToBid, Model.NextBiderUsername]</h5>
         </div>
     </div>
 }
@@ -42,7 +44,7 @@
 {
     <div class="row mt-3">
         <div class="col-sm-12">
-            <h5 class="text-primary">Waiting for the dealer to finish the round.</h5>
+            <h5 class="text-primary">@localizer[Generated.ViewsGameBidWaitingRoomResx.WaitingForDealerToFinishRound]</h5>
         </div>
     </div>
 }
@@ -50,7 +52,7 @@
 {
     <div class="row mt-3">
         <div class="col-sm-12 justify-content-center align-items-center">
-            <a class="btn btn-lg btn-outline-success" style="width: 100%" asp-controller="Game" asp-action="FinishRound">Finish Round</a>
+            <a class="btn btn-lg btn-outline-success" style="width: 100%" asp-controller="Game" asp-action="FinishRound">@localizer[Generated.ViewsGameBidWaitingRoomResx.FinishRound]</a>
         </div>
     </div>
 }

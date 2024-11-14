@@ -1,20 +1,22 @@
-﻿@model Wizscore.ViewModels.GameSubmitCreateViewModel
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer localizer
+@model Wizscore.ViewModels.GameSubmitCreateViewModel
 @{
     Layout = "_GameLayout";
-    ViewData["Heading"] = "Create a new game!";
+    ViewData["Heading"] = localizer[Generated.ViewsGameCreateResx.Title]; 
 }
 <div class="row">
     <div class="col-sm-12">
         <form asp-action="SubmitCreate" asp-controller="Game" method="post">
-            <label asp-for=NumberOfPlayers class="form-label">Number of player: </label>
+            <label asp-for=NumberOfPlayers class="form-label">@localizer[Generated.ViewsGameCreateResx.NumberOfPlayer]</label>
             <input asp-for="NumberOfPlayers" class="form-control" aria-describedby="numberOfPlayersHelp" />
-            <div id="numberOfPlayersHelp" class="form-text">The number of players will dictate how many rounds you'll play</div>
+            <div id="numberOfPlayersHelp" class="form-text">@localizer[Generated.ViewsGameCreateResx.NumberOfPlayerHelpInfo]</div>
 
-            <label asp-for="Username" class="form-label">Username</label>
+            <label asp-for="Username" class="form-label">@localizer[Generated.ViewsGameCreateResx.Username]</label>
             <input asp-for="Username" class="form-control" aria-describedby="usernameHelp" />
-            <div id="usernameHelp" class="form-text">Enter your username for this game</div>
+            <div id="usernameHelp" class="form-text">@localizer[Generated.ViewsGameCreateResx.UsernameHelpInfo]</div>
 
-            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5">Create</button>
+            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5">@localizer[Generated.ViewsGameCreateResx.Create]</button>
         </form>
     </div>
 </div>

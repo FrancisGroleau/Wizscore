@@ -1,13 +1,15 @@
-﻿@model Wizscore.ViewModels.BidSubmitViewModel
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer localizer
+@model Wizscore.ViewModels.BidSubmitViewModel
 @{
     Layout = "_GameLayout";
-    ViewData["Heading"] = $"Make a bid for round: {ViewBag.RoundNumber}";
+    ViewData["Heading"] = localizer[Generated.ViewsGameBidResx.MakeABid, ViewBag.RoundNumber];
 }
 <div class="row mt-3">
     <div class="sm-col-12">
         @if (ViewBag.IsDealer)
         {
-            <h4 class="mb-2">Please select the suit for this round if needed</h4>
+            <h4 class="mb-2">@localizer[Generated.ViewsGameBidResx.SelectSuit]</h4>
         }
 
         <div class="suit-container mb-2">
@@ -39,7 +41,7 @@
                 </button>
             </div>
 
-            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5 align-self-end">Submit</button>
+            <button type="submit" style="width: 100%" class="btn btn-lg btn-outline-success mt-5 align-self-end">@localizer[Generated.ViewsGameBidResx.SubmitBid]</button>
         </form>
     </div>
 </div>

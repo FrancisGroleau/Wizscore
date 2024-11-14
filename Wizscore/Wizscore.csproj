@@ -8,6 +8,15 @@
 		</PropertyGroup>
 
 		<ItemGroup>
+		  <EmbeddedResource Remove="Resources\Views.Game.Bid.En.resx" />
+		  <EmbeddedResource Remove="Resources\Views.Game.Bid.Fr.resx" />
+		  <EmbeddedResource Remove="Resources\Views.Game.BidWaitingRoom.En.resx" />
+		  <EmbeddedResource Remove="Resources\Views.Game.BidWaitingRoom.Fr.resx" />
+		  <EmbeddedResource Remove="Resources\Views.Shared._Layout.En.resx" />
+		  <EmbeddedResource Remove="Resources\Views.Shared._Layout.Fr.resx" />
+		</ItemGroup>
+
+		<ItemGroup>
 				<PackageReference Include="EntityFramework" Version="6.5.1" />
 				<PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
 				<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
@@ -37,7 +46,13 @@
 		</ItemGroup>
 
 		<ItemGroup>
+				<AdditionalFiles Include="Resources\Views.Game.Bid.En.resx" />
+				<AdditionalFiles Include="Resources\Views.Game.Bid.Fr.resx" />
+				<AdditionalFiles Include="Resources\Views.Game.BidWaitingRoom.En.resx" />
+				<AdditionalFiles Include="Resources\Views.Game.BidWaitingRoom.Fr.resx" />
 				<AdditionalFiles Include="Resources\Views.Home.Index.En.resx" />
 				<AdditionalFiles Include="Resources\Views.Home.Index.Fr.resx" />
+				<AdditionalFiles Include="Resources\Views.Shared._Layout.En.resx" />
+				<AdditionalFiles Include="Resources\Views.Shared._Layout.Fr.resx" />
 		</ItemGroup>
 </Project>
