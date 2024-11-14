@@ -124,7 +124,7 @@
     <value>Join</value>
   </data>
   <data name="OtherKey" xml:space="preserve">
-    <value>NON CA MARCHE PAS</value>
+    <value>Some other key</value>
   </data>
   <data name="Rejoin" xml:space="preserve">
     <value>Re-Join current game</value>

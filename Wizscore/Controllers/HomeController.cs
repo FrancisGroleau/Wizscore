@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Wizscore.Managers;
 using Wizscore.Models;
 using Wizscore.ViewModels;
@@ -48,6 +50,18 @@ namespace Wizscore.Controllers
             }
         
             return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetLanguage(string culture, string returnUrl)
+        {
+            Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+               CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+               new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+           );
+
+            return LocalRedirect(returnUrl);
         }
 
 
