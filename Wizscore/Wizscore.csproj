@@ -6,16 +6,7 @@
 				<ImplicitUsings>enable</ImplicitUsings>
 				<UserSecretsId>01951bdc-9b70-40f8-b969-192def76c150</UserSecretsId>
 		</PropertyGroup>
-
-		<ItemGroup>
-		  <EmbeddedResource Remove="Resources\Views.Game.Bid.En.resx" />
-		  <EmbeddedResource Remove="Resources\Views.Game.Bid.Fr.resx" />
-		  <EmbeddedResource Remove="Resources\Views.Game.BidWaitingRoom.En.resx" />
-		  <EmbeddedResource Remove="Resources\Views.Game.BidWaitingRoom.Fr.resx" />
-		  <EmbeddedResource Remove="Resources\Views.Shared._Layout.En.resx" />
-		  <EmbeddedResource Remove="Resources\Views.Shared._Layout.Fr.resx" />
-		</ItemGroup>
-
+    
 		<ItemGroup>
 				<PackageReference Include="EntityFramework" Version="6.5.1" />
 				<PackageReference Include="Microsoft.AspNet.SignalR.Core" Version="2.4.3" />
@@ -44,15 +35,9 @@
 		<ItemGroup>
 				<ProjectReference Include="..\Wizscore.ResourceGenerator\Wizscore.ResourceGenerator.csproj" OutputItemType="Analyzer" />
 		</ItemGroup>
-
-		<ItemGroup>
-				<AdditionalFiles Include="Resources\Views.Game.Bid.En.resx" />
-				<AdditionalFiles Include="Resources\Views.Game.Bid.Fr.resx" />
-				<AdditionalFiles Include="Resources\Views.Game.BidWaitingRoom.En.resx" />
-				<AdditionalFiles Include="Resources\Views.Game.BidWaitingRoom.Fr.resx" />
-				<AdditionalFiles Include="Resources\Views.Home.Index.En.resx" />
-				<AdditionalFiles Include="Resources\Views.Home.Index.Fr.resx" />
-				<AdditionalFiles Include="Resources\Views.Shared._Layout.En.resx" />
-				<AdditionalFiles Include="Resources\Views.Shared._Layout.Fr.resx" />
-		</ItemGroup>
+    
+        <ItemGroup>
+            <AdditionalFiles Include="**\*.resx" />
+        </ItemGroup>
+        
 </Project>

@@ -330,6 +330,20 @@ namespace Wizscore.Controllers
             }
             vm.IsRoundFinished = isCurrentRoundFinishedResult.Value;
 
+            if (isCurrentRoundFinishedResult.Value)
+            {
+                var hasUserSubmittedBidResult = _gameManager.hasUserSubmittedBidResult(game, username);
+                if (!hasUserSubmittedBidResult.IsSuccess)
+                {
+                    ModelState.AddModelError("Error", hasUserSubmittedBidResult.Error.Message);
+                    return View(nameof(BidWaitingRoom), vm);
+                }
+
+                if (!hasUserSubmittedBidResult.Value)
+                {
+                    return RedirectToAction(nameof(BidResult));
+                }
+            }
 
             var nextBiderUsernameResult = _gameManager.GetNextPlayerUsernameToBid(game);
             if(!nextBiderUsernameResult.IsSuccess)
@@ -406,14 +420,31 @@ namespace Wizscore.Controllers
             {
                 return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
+            
+            var game = await _gameManager.GetGameByKeyAsync(gameKey);
+            if(game == null)
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
 
-            var roundNumberResult = await _gameManager.GetCurentRoundNumberAsync(gameKey);
+            var roundNumberResult = _gameManager.GetCurentRoundNumber(game);
             if (!roundNumberResult.IsSuccess)
             {
-                ModelState.AddModelError("Error", roundNumberResult.Error.Message);
-                return View(nameof(BidResult));
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
             }
             ViewBag.RoundNumber = roundNumberResult.Value;
+            
+            var hasCurrentUserSubmittedBidResult = _gameManager.hasUserSubmittedBidResult(game, username);
+            if (!hasCurrentUserSubmittedBidResult.IsSuccess)
+            {
+                return RedirectToAction(nameof(HomeController.Index), nameof(HomeController).Replace("Controller", string.Empty));
+            }
+
+            if (hasCurrentUserSubmittedBidResult.Value)
+            {
+                return RedirectToAction(nameof(Score));
+            }
+            
 
             return View(nameof(BidResult));
         }

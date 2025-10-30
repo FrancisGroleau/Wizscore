@@ -50,6 +50,7 @@ namespace Wizscore.Managers
 
         Result<bool> IsAllBidPlacedForCurrentRound(Game game);
         Result<bool> IsCurrentRoundFinished(Game game);
+        Result<bool> hasUserSubmittedBidResult(Game game, string username);
         Result<bool> IsLastRound(Game game);
     }
 
@@ -739,6 +740,25 @@ namespace Wizscore.Managers
             var lastRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
             var isLastRoundFinished = lastRound.Bids.Any() && lastRound.Bids.All(a => a.ActualValue.HasValue);
             return Result<bool>.Success(isLastRoundFinished);
+        }
+
+        public Result<bool> hasUserSubmittedBidResult(Game game, string username)
+        {
+            var player = game.Players.FirstOrDefault(f => string.Equals(f.Username, username, StringComparison.OrdinalIgnoreCase));
+            if (player == null)
+            {
+                return Result<bool>.Failure(Error.FromError("Player not found in game", "Game.Players.NotFound"));
+            }
+            
+            var lastRound = game.Rounds.OrderByDescending(o => o.RoundNumber).First();
+            var playerBid = lastRound.Bids.FirstOrDefault(f => f.PlayerId == player.Id);
+            
+            if (playerBid == null)
+            {
+                return Result<bool>.Failure(Error.FromError("Player has not placed a bid in the current round", "Game.Players.NoBid"));
+            }
+            
+            return Result<bool>.Success(playerBid.ActualValue.HasValue);
         }
 
         public Result<bool> IsLastRound(Game game)
