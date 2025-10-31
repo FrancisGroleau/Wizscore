@@ -10,6 +10,7 @@ namespace Wizscore.Persistence
         public DbSet<Player> Players { get; set; } = null!;
         public DbSet<Round> Rounds { get; set; } = null!;
         public DbSet<Bid> Bids { get; set; } = null!;
+        public DbSet<SnakeScore> SnakeScores { get; set; } = null!;
 
 
         public WizscoreContext(DbContextOptions<WizscoreContext> options) : base(options) { }

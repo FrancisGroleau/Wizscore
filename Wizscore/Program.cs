@@ -25,6 +25,7 @@ builder.Services.AddTransient<IGameRepository, GameRepository>();
 builder.Services.AddTransient<IPlayerRepository, PlayerRepository>();
 builder.Services.AddTransient<IRoundRepository, RoundRepository>(); 
 builder.Services.AddTransient<IBidRepository, BidRepository>();
+builder.Services.AddTransient<ISnakeScoreRepository, SnakeScoreRepository>();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 

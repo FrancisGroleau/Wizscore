@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Wizscore.Managers;
 using Wizscore.Models;
+using Wizscore.Persistence.Entities;
+using Wizscore.Persistence.Repositories;
 using Wizscore.ViewModels;
 
 namespace Wizscore.Controllers
@@ -12,11 +14,13 @@ namespace Wizscore.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IGameManager _gameManager;
+        private readonly ISnakeScoreRepository _snakeScoreRepository;
 
-        public HomeController(ILogger<HomeController> logger, IGameManager gameManager)
+        public HomeController(ILogger<HomeController> logger, IGameManager gameManager, ISnakeScoreRepository snakeScoreRepository)
         {
             _logger = logger;
             _gameManager = gameManager;
+            _snakeScoreRepository = snakeScoreRepository;
         }
 
         public async Task<IActionResult> Index()
@@ -69,6 +73,25 @@ namespace Wizscore.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<IActionResult> Snake()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSnakeScore([FromBody] SnakeScoreModel model)
+        {
+            var playerName = Request.Cookies[Constants.Cookies.UserName];
+            var score = new SnakeScore {
+                Score = model.Score,
+                PlayerName = playerName ?? "Anonymous",
+                Date = DateTime.UtcNow
+            };
+            await _snakeScoreRepository.AddScoreAsync(score);
+            var topScores = await _snakeScoreRepository.GetTopScoresAsync(5);
+            return Json(topScores);
         }
     }
 }
